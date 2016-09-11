@@ -20,6 +20,9 @@ def get_args():
 def main():
     # load the data =>
     # clean in shape
+    # =multiple-node
+    # =multiple-core
+    # =multiple-threading
     # training
     # use multiple-threading to excute different conf training
     pass
