@@ -54,3 +54,5 @@ Thumbs.db
 *.mp3
 *.pdf
 *.bmp
+*.h5
+*.pkl
