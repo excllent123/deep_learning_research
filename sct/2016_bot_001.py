@@ -127,6 +127,7 @@ img_cols= 64
 img_channels=3
 
 folderList = create_folderList(ROOT_Dir)
+print (folderList)
 
 
 ########################################################################
@@ -180,18 +181,10 @@ for train, test in kf:
     # fits the model on batches with real-time data augmentation:
     model.fit_generator(gen_Img.flow(Tr_X, Tr_Y, batch_size=20),
                     samples_per_epoch=len(Tr_X), nb_epoch=50, validation_data=(Te_X, Te_Y))
-
-
-
-
-model.save_weights('../hub/model/{}.h5'.format(model_name))
-print ('saving model weight as ' + '../hub/model/{}.h5'.format(model_name))
-
-
-
-# serialize model to JSON
-model_json = model.to_json()
-with open("../hub/model/{}.json".format(model_name), "w") as json_file:
-    json_file.write(model_json)
-
-print ('saving model struct as ' + "../hub/model/{}.json".format(model_name))
+    model.save_weights('../hub/model/{}.h5'.format(model_name),overwrite=True)
+    print ('saving model weight as ' + '../hub/model/{}.h5'.format(model_name))
+    # serialize model to JSON
+    model_json = model.to_json()
+    with open("../hub/model/{}.json".format(model_name), "w") as json_file:
+        json_file.write(model_json)
+    print ('saving model struct as ' + "../hub/model/{}.json".format(model_name))
