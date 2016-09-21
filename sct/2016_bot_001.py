@@ -47,7 +47,7 @@ def TrainFilePath(folderPath, constrain=None, **kargs):
     '''
     assert folderPath[-1]!='/'
     if constrain is None:
-        constrain = ('avi', 'mp4','png','jpg')
+        constrain = ('avi', 'mp4','png','jpg','jpeg')
     for (rootDir, dirNames, fileNames) in os.walk(folderPath):
         for fileName in fileNames:
             if fileName.split('.')[-1] in constrain:
