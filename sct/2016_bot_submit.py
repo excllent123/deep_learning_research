@@ -173,7 +173,7 @@ with open('output5.txt','w') as f:
         top1_l = mapping_dict[top1]
         top2_l = mapping_dict[top2]
         imgName = imgPath.split('\\')[-1].split('.')[0]
-        f.write('{} {} {} {} {}\n'.format(imgName,
+        f.write('{}\t{}\t{}\t{}\t{}\n'.format(imgName,
                                          top1_l,
                                          top1_p,
                                          top2_l,
