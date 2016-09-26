@@ -1,5 +1,5 @@
 
-import os, sys, glob
+import os, sys, codecs
 import numpy as np
 import cv2
 from skimage.io import imread
@@ -36,14 +36,6 @@ from keras.models import model_from_json
 11 wolf : 5
 '''
 
-mapping_dict = {}
-
-a = [6,7,4,3,8,0,10,9,2,1,11,5]
-for i in range(12):
-    mapping_dict[i]=a[i]
-
-
-
 
 
 def auto_resized(img,size):
@@ -61,7 +53,7 @@ def TrainFilePath(folderPath, constrain=None, **kargs):
     '''
     assert folderPath[-1]!='/'
     if constrain is None:
-        constrain = ('avi', 'mp4','png','jpg','jpeg','jepg')
+        constrain = ('avi', 'mp4','png','jpg','jpeg','jepg','gif')
     for (rootDir, dirNames, fileNames) in os.walk(folderPath):
         for fileName in fileNames:
             if fileName.split('.')[-1] in constrain:
@@ -74,7 +66,10 @@ def genTrX(filePath, resolution, img_channels=3):
     if img_channels==1:
         img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     elif img_channels==3:
-        img = img[:,:,:3]
+        try:
+            img = img[:,:,:3]
+        except:
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
     return img
 
 def load_training(folderList, img_rows, img_cols, img_channels):
@@ -107,53 +102,47 @@ def reshapeShuffle(TrX, TrY, img_rows, img_cols, img_channels):
     print ('Train_X : ',trainX.shape,'Train_Y' ,trainY.shape)
     return trainX , trainY
 
-def easyVGG(img_rows,img_cols,weights_path=None):
-    model = Sequential()
-    model.add(ZeroPadding2D((1,1),input_shape=(3,img_rows,img_cols)))
-    model.add(Convolution2D(32, 3, 3))
-    model.add(MaxPooling2D((3,3), strides=(2,2)))
+# Create mapping list
+mapping_dict = {}
+a = [6,7,4,3,8,0,10,9,2,1,11,5]
+for i in range(12):
+    mapping_dict[i]=a[i]
 
-    model.add(Convolution2D(64, 3, 3))
-    model.add(MaxPooling2D((3,3), strides=(2,2)))
+# Setting Testing data source
+Test_Dir = 'C:\\Users\\kentc\\Downloads\\Testset6'
 
-    model.add(Flatten())
-    model.add(Dense(1500, activation='relu'))
-    model.add(Dropout(0.3))
-    model.add(Dense(1000, activation='tanh'))
-    model.add(Dense(200, activation='softmax'))
-    model.add(Dense(12, activation='softmax'))
-    if weights_path:
-        model.load_weights(weights_path)
-        print ('loaded weight')
+# Setting model path
+model_json_path = '..\\hub\\model\\2016_bot_004.json'
+model_weight_path = '..\\hub\\model\\2016_bot_004.h5'
 
-    return model
-#
+# Setting output file name
+output_file = '2016_bot_cv_test6.txt'
 
-
-# Read Data and Set parameters
-
-ROOT_Dir = 'D:\\2016bot_cv'
-Test_Dir = 'C:\\Users\\kentc\\Downloads\\Testset 5'
-
-
+# The image preprocess should be the same
 img_rows= 64
-
 img_cols= 64
-
 img_channels=3
 
-# folderList = create_folderList(ROOT_Dir)
-# print (folderList)
+# loading model struc
+json_file = open(model_json_path, 'r')
+loaded_model_json = json_file.read()
+json_file.close()
+model = model_from_json(loaded_model_json)
 
-
-########################################################################
-model = easyVGG(img_rows,img_cols,'../hub/model/2016bot_0001.h5')
-#https://gist.github.com/baraldilorenzo/8d096f48a1be4a2d660d
 sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
 model.compile(optimizer=sgd,
               loss='categorical_crossentropy',metrics=['accuracy'])
-#########################################################################
-with open('output5.txt','w') as f:
+print ('Successful loading Model')
+
+# loading model weight
+model.load_weights(model_weight_path)
+print ('Successful loading Model Weight')
+
+
+
+# process Unicode text
+
+with codecs.open(output_file,'w',encoding='utf-8') as f:
     #f.write('{} {} {} {} {}').format(imgPath.split('.')[0], )
     for imgPath in TrainFilePath(Test_Dir):
         print imgPath

@@ -1,3 +1,4 @@
+
 import os, sys, math
 import numpy as np
 import cv2
@@ -105,9 +106,9 @@ def easyVGG(img_rows,img_cols,weights_path=None):
     model.add(MaxPooling2D((3,3), strides=(2,2)))
 
     model.add(Flatten())
-    model.add(Dense(2500, activation='relu'))
+    model.add(Dense(1200, activation='relu'))
     model.add(Dropout(0.5))
-    model.add(Dense(2000, activation='relu'))
+    model.add(Dense(1200, activation='relu'))
     model.add(Dense(12, activation='softmax'))
     if weights_path:
         try :
@@ -127,7 +128,8 @@ img_cols= 64
 
 img_channels=3
 
-model_name = '2016bot_0002'
+model_name = __file__.split('\\')[-1].split('.')[0]
+
 
 #==============================================================================
 
@@ -138,7 +140,6 @@ try :
     print ('loded from hdf5 data')
 except Exception as err:
     print (str(err))
-
     # Set the data source path
     ROOT_Dir = 'D:\\2016bot_cv'
 
@@ -185,9 +186,9 @@ def step_decay(epoch):
     lrate = initial_lrate * math.pow(drop, math.floor((1+epoch)/epochs_drop))
     return lrate
 
-model = easyVGG(img_rows,img_cols,'../hub/model/2016bot_0002.h5')
+model = easyVGG(img_rows,img_cols,'../hub/model/{}.h5'.format(model_name))
 #https://gist.github.com/baraldilorenzo/8d096f48a1be4a2d660d
-sgd = SGD(lr=0.05, decay=1e-6, momentum=0.8, nesterov=True)
+sgd = SGD(lr=0.001, decay=1e-6, momentum=0.5, nesterov=True)
 model.compile(optimizer=sgd,
               loss='categorical_crossentropy',metrics=['accuracy'])
 
@@ -201,7 +202,7 @@ callbacks_list = [lrate]
 
 
 # Start Training
-kf = KFold(len(train_Y), n_folds=5)
+kf = KFold(len(train_Y), n_folds=2)
 for train, test in kf:
     #print (train, test)
     Tr_X = train_X[train]
@@ -209,8 +210,8 @@ for train, test in kf:
     Tr_Y = train_Y[train]
     Te_Y = train_Y[test]
     # fits the model on batches with real-time data augmentation:
-    model.fit_generator(gen_Img.flow(Tr_X, Tr_Y, batch_size=60),
-                    samples_per_epoch=len(Tr_X), nb_epoch=3, validation_data=(Te_X, Te_Y))
+    model.fit_generator(gen_Img.flow(Tr_X, Tr_Y, batch_size=100),
+                    samples_per_epoch=len(Tr_X), nb_epoch=5, validation_data=(Te_X, Te_Y))
     model.save_weights('../hub/model/{}.h5'.format(model_name),overwrite=True)
     print ('saving weight as ' + '../hub/model/{}.h5'.format(model_name))
     # serialize model to JSON

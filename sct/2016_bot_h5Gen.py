@@ -5,13 +5,21 @@ from skimage.io import imread
 from sklearn.utils import shuffle
 
 
+ROOT_Dir = 'D:\\2016bot_cv'
+
+img_rows= 92
+
+img_cols= 92
+
+img_channels=3
+
 def auto_resized(img,size):
     '''size = (width,height)'''
     size = tuple(size)
     resize_img = cv2.resize(img, size, interpolation=cv2.INTER_LINEAR)
     return resize_img
 
-def TrainFilePath(folderPath, constrain=None, **kargs):
+def gen_FilePath(folderPath, constrain=None, size_limit=None, **kargs):
     '''
     (1) Output filepath and calssName
     (2) folderPath
@@ -22,9 +30,15 @@ def TrainFilePath(folderPath, constrain=None, **kargs):
     if constrain is None:
         constrain = ('avi', 'mp4','png','jpg','jpeg','bmp')
     for (rootDir, dirNames, fileNames) in os.walk(folderPath):
+        count = 0
         for fileName in fileNames:
+            if size_limit is not None :
+                if size_limit < count:
+                    break
+                    #continue
             if fileName.split('.')[-1] in constrain:
                 yield (os.path.join(rootDir, fileName))
+                count+=1
 
 #img_channels = 3
 def genTrX(filePath, resolution, img_channels=3):
@@ -41,7 +55,7 @@ def load_training(folderList, img_rows, img_cols, img_channels):
     TrX = []
     TrY_template = np.eye(len(folderList))
     for eyeId, folderPath in enumerate(folderList):
-        for imgPath in TrainFilePath(folderPath) :
+        for imgPath in gen_FilePath(folderPath, size_limit=6000) :
             TrY.append(TrY_template[eyeId])
             TrX.append(genTrX(imgPath, (img_rows,img_cols), img_channels))
     print (len(TrX))
@@ -71,27 +85,22 @@ def reshapeShuffle(TrX, TrY, img_rows, img_cols, img_channels):
 
 # Read Data and Set parameters
 
-ROOT_Dir = 'D:\\2016bot_cv'
 
-img_rows= 48
-
-img_cols= 48
-
-img_channels=3
 
 folderList = create_folderList(ROOT_Dir)
 print (folderList)
 
 Train_X, Train_Y = load_training(folderList, img_rows, img_cols, img_channels)
 
-train_X , train_Y = reshapeShuffle(Train_X, Train_Y, img_rows, img_cols, img_channels=img_channels)
 
 print ('loaded all data ')
 import h5py
-with h5py.File('image_{}.h5'.format(img_rows),'w') as f:
+with h5py.File('..\\hub\\image_{}.h5'.format(img_rows),'w') as f:
     f.create_dataset('x', data = Train_X)
     f.create_dataset('y', data = Train_Y)
 
+print (' data HDF5')
+'''
 #with h5py.File('image_{}.h5'.format(img_rows),'r') as f:
 #    train_X = np.array(f.get('x'))
 #    train_Y = np.array(f.get('y'))
@@ -99,7 +108,7 @@ try :
     with h5py.File('image_{}.h5'.format(img_rows),'r') as f:
         train_X = np.array(f.get('x'))
         train_Y = np.array(f.get('y'))
-'''
+
 except Exception:
 except ZeroDivisionError as err:
     >>> try:

@@ -131,8 +131,7 @@ print (folderList)
 
 
 ########################################################################
-model = easyVGG(img_rows,img_cols,'../hub/model/2016bot_0001.h5'
-)
+model = easyVGG(img_rows,img_cols,'../hub/model/2016bot_0001.h5')
 #https://gist.github.com/baraldilorenzo/8d096f48a1be4a2d660d
 sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
 model.compile(optimizer=sgd,

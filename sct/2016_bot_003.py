@@ -1,3 +1,4 @@
+
 import os, sys, math
 import numpy as np
 import cv2
@@ -95,29 +96,56 @@ def reshapeShuffle(TrX, TrY, img_rows, img_cols, img_channels):
     print ('Train_X : ',trainX.shape,'Train_Y' ,trainY.shape)
     return trainX , trainY
 
-def easyVGG(img_rows,img_cols,weights_path=None):
+
+def VGG_16(img_rows,img_cols,weights_path=None):
     model = Sequential()
     model.add(ZeroPadding2D((1,1),input_shape=(3,img_rows,img_cols)))
-    model.add(Convolution2D(32, 3, 3))
-    model.add(MaxPooling2D((3,3), strides=(2,2)))
+    model.add(Convolution2D(64, 3, 3, activation='relu'))
+    model.add(ZeroPadding2D((1,1)))
+    model.add(Convolution2D(64, 3, 3, activation='relu'))
+    model.add(MaxPooling2D((2,2), strides=(2,2)))
 
-    model.add(Convolution2D(64, 3, 3))
-    model.add(MaxPooling2D((3,3), strides=(2,2)))
+    model.add(ZeroPadding2D((1,1)))
+    model.add(Convolution2D(128, 3, 3, activation='relu'))
+    model.add(ZeroPadding2D((1,1)))
+    model.add(Convolution2D(128, 3, 3, activation='relu'))
+    model.add(MaxPooling2D((2,2), strides=(2,2)))
+
+    model.add(ZeroPadding2D((1,1)))
+    model.add(Convolution2D(256, 3, 3, activation='relu'))
+    model.add(ZeroPadding2D((1,1)))
+    model.add(Convolution2D(256, 3, 3, activation='relu'))
+    model.add(ZeroPadding2D((1,1)))
+    model.add(Convolution2D(256, 3, 3, activation='relu'))
+    model.add(MaxPooling2D((2,2), strides=(2,2)))
+
+    model.add(ZeroPadding2D((1,1)))
+    model.add(Convolution2D(512, 3, 3, activation='relu'))
+    model.add(ZeroPadding2D((1,1)))
+    model.add(Convolution2D(512, 3, 3, activation='relu'))
+    model.add(ZeroPadding2D((1,1)))
+    model.add(Convolution2D(512, 3, 3, activation='relu'))
+    model.add(MaxPooling2D((2,2), strides=(2,2)))
+
+    model.add(ZeroPadding2D((1,1)))
+    model.add(Convolution2D(512, 3, 3, activation='relu'))
+    model.add(ZeroPadding2D((1,1)))
+    model.add(Convolution2D(512, 3, 3, activation='relu'))
+    model.add(ZeroPadding2D((1,1)))
+    model.add(Convolution2D(512, 3, 3, activation='relu'))
+    model.add(MaxPooling2D((2,2), strides=(2,2)))
 
     model.add(Flatten())
-    model.add(Dense(2500, activation='relu'))
+    model.add(Dense(800, activation='relu'))
     model.add(Dropout(0.5))
-    model.add(Dense(2000, activation='relu'))
+    model.add(Dense(500, activation='relu'))
+    model.add(Dropout(0.5))
     model.add(Dense(12, activation='softmax'))
+
     if weights_path:
-        try :
-            model.load_weights(weights_path)
-            print ('loaded weight')
-        except:
-            pass
+        model.load_weights(weights_path)
 
     return model
-
 
 #==============================================================================
 # Read Data and Set parameters
@@ -185,9 +213,9 @@ def step_decay(epoch):
     lrate = initial_lrate * math.pow(drop, math.floor((1+epoch)/epochs_drop))
     return lrate
 
-model = easyVGG(img_rows,img_cols,'../hub/model/2016bot_0002.h5')
+model = VGG_16(img_rows,img_cols)
 #https://gist.github.com/baraldilorenzo/8d096f48a1be4a2d660d
-sgd = SGD(lr=0.05, decay=1e-6, momentum=0.8, nesterov=True)
+sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
 model.compile(optimizer=sgd,
               loss='categorical_crossentropy',metrics=['accuracy'])
 
@@ -209,12 +237,15 @@ for train, test in kf:
     Tr_Y = train_Y[train]
     Te_Y = train_Y[test]
     # fits the model on batches with real-time data augmentation:
-    model.fit_generator(gen_Img.flow(Tr_X, Tr_Y, batch_size=60),
-                    samples_per_epoch=len(Tr_X), nb_epoch=3, validation_data=(Te_X, Te_Y))
+    model.fit_generator(gen_Img.flow(Tr_X, Tr_Y, batch_size=32),
+                    samples_per_epoch=len(Tr_X), nb_epoch=100, validation_data=(Te_X, Te_Y))
     model.save_weights('../hub/model/{}.h5'.format(model_name),overwrite=True)
-    print ('saving weight as ' + '../hub/model/{}.h5'.format(model_name))
+    print ('saving model weight as ' + '../hub/model/{}.h5'.format(model_name))
     # serialize model to JSON
     model_json = model.to_json()
     with open("../hub/model/{}.json".format(model_name), "w") as json_file:
         json_file.write(model_json)
-    print ('saving struct as ' + "../hub/model/{}.json".format(model_name))
+    print ('saving model struct as ' + "../hub/model/{}.json".format(model_name))
+
+
+

@@ -1,3 +1,4 @@
+
 import os, sys, math
 import numpy as np
 import cv2
@@ -18,9 +19,7 @@ from keras.optimizers import SGD
 from keras.utils import np_utils
 
 from keras.optimizers import Adam
-
 from keras.models import model_from_json
-
 import h5py
 
 class Conf:
@@ -95,39 +94,40 @@ def reshapeShuffle(TrX, TrY, img_rows, img_cols, img_channels):
     print ('Train_X : ',trainX.shape,'Train_Y' ,trainY.shape)
     return trainX , trainY
 
-def easyVGG(img_rows,img_cols,weights_path=None):
+
+def VGG_16(img_rows,img_cols,weights_path=None):
     model = Sequential()
     model.add(ZeroPadding2D((1,1),input_shape=(3,img_rows,img_cols)))
     model.add(Convolution2D(32, 3, 3))
     model.add(MaxPooling2D((3,3), strides=(2,2)))
 
-    model.add(Convolution2D(64, 3, 3))
-    model.add(MaxPooling2D((3,3), strides=(2,2)))
+    model.add(Convolution2D(64, 3, 3, activation='relu'))
+    model.add(ZeroPadding2D((1,1)))
+    model.add(Convolution2D(64, 3, 3, activation='relu'))
+    model.add(MaxPooling2D((2,2), strides=(2,2)))
 
     model.add(Flatten())
-    model.add(Dense(2500, activation='relu'))
+    model.add(Dense(800, activation='relu'))
     model.add(Dropout(0.5))
-    model.add(Dense(2000, activation='relu'))
+    model.add(Dense(800, activation='relu'))
+    model.add(Dropout(0.2))
+    model.add(Dense(800, activation='softmax'))
     model.add(Dense(12, activation='softmax'))
+
     if weights_path:
-        try :
-            model.load_weights(weights_path)
-            print ('loaded weight')
-        except:
-            pass
+        model.load_weights(weights_path)
 
     return model
 
-
 #==============================================================================
 # Read Data and Set parameters
-img_rows= 64
+img_rows= 128
 
-img_cols= 64
+img_cols= 128
 
 img_channels=3
 
-model_name = '2016bot_0002'
+model_name = __file__.split('\\')[-1].split('.')[0]
 
 #==============================================================================
 
@@ -147,27 +147,19 @@ except Exception as err:
     Train_X, Train_Y = load_training(folderList, img_rows, img_cols, img_channels)
 
 #==============================================================================
-
+Train_X, X_test, Train_Y, y_test = train_test_split(Train_X, Train_Y, test_size=0.5, random_state=0)
+del X_test
+del y_test
+print ('small training')
 train_X , train_Y = reshapeShuffle(Train_X, Train_Y, img_rows, img_cols, img_channels=img_channels)
 #==============================================================================
 
 
 # Data Aug.
-gen_Img = ImageDataGenerator(featurewise_center=True,
-    samplewise_center=False,
-    featurewise_std_normalization=True,
-    samplewise_std_normalization=False,
-    zca_whitening=False,
-    rotation_range=0.,
-    width_shift_range=0.1,
-    height_shift_range=0.1,
-    shear_range=0.,
-    channel_shift_range=0.,
-    fill_mode='nearest',
-    cval=0.,
-    horizontal_flip=False,
-    vertical_flip=False,
-    rescale=None)
+gen_Img = ImageDataGenerator(featurewise_center=False,
+    samplewise_center=True,
+    featurewise_std_normalization=False,
+    samplewise_std_normalization=True)
 
 # Data Aug. Step2
 gen_Img.fit(train_X)
@@ -185,9 +177,9 @@ def step_decay(epoch):
     lrate = initial_lrate * math.pow(drop, math.floor((1+epoch)/epochs_drop))
     return lrate
 
-model = easyVGG(img_rows,img_cols,'../hub/model/2016bot_0002.h5')
+model = VGG_16(img_rows,img_cols)
 #https://gist.github.com/baraldilorenzo/8d096f48a1be4a2d660d
-sgd = SGD(lr=0.05, decay=1e-6, momentum=0.8, nesterov=True)
+sgd = SGD(lr=0.1, decay=1e-6, momentum=0.5, nesterov=True)
 model.compile(optimizer=sgd,
               loss='categorical_crossentropy',metrics=['accuracy'])
 
@@ -201,20 +193,23 @@ callbacks_list = [lrate]
 
 
 # Start Training
-kf = KFold(len(train_Y), n_folds=5)
-for train, test in kf:
-    #print (train, test)
-    Tr_X = train_X[train]
-    Te_X = train_X[test]
-    Tr_Y = train_Y[train]
-    Te_Y = train_Y[test]
-    # fits the model on batches with real-time data augmentation:
-    model.fit_generator(gen_Img.flow(Tr_X, Tr_Y, batch_size=60),
-                    samples_per_epoch=len(Tr_X), nb_epoch=3, validation_data=(Te_X, Te_Y))
-    model.save_weights('../hub/model/{}.h5'.format(model_name),overwrite=True)
-    print ('saving weight as ' + '../hub/model/{}.h5'.format(model_name))
-    # serialize model to JSON
-    model_json = model.to_json()
-    with open("../hub/model/{}.json".format(model_name), "w") as json_file:
-        json_file.write(model_json)
-    print ('saving struct as ' + "../hub/model/{}.json".format(model_name))
+for i in range(2,10):
+    kf = KFold(len(train_Y), n_folds=i)
+    for train, test in kf:
+        #print (train, test)
+        Tr_X = train_X[train]
+        Te_X = train_X[test]
+        Tr_Y = train_Y[train]
+        Te_Y = train_Y[test]
+        # fits the model on batches with real-time data augmentation:
+        model.fit_generator(gen_Img.flow(Tr_X, Tr_Y, batch_size=100),
+                        samples_per_epoch=len(Tr_X), nb_epoch=3, validation_data=(Te_X, Te_Y))
+        model.save_weights('../hub/model/{}.h5'.format(model_name),overwrite=True)
+        print ('saving model weight as ' + '../hub/model/{}.h5'.format(model_name))
+        # serialize model to JSON
+        model_json = model.to_json()
+        with open("../hub/model/{}.json".format(model_name), "w") as json_file:
+            json_file.write(model_json)
+        print ('saving model struct as ' + "../hub/model/{}.json".format(model_name))
+
+
