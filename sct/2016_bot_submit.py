@@ -36,7 +36,34 @@ from keras.models import model_from_json
 11 wolf : 5
 '''
 
+class Model_average():
+    def __init__(self):
+        self.model=[]
+        self.proba=None
 
+    def add_model(self, jsonPath, weightPath):
+        # model have to be loaded weight
+        json_file = open(jsonPath, 'r')
+        loaded_model_json = json_file.read()
+        json_file.close()
+
+        # struc model
+        model = model_from_json(loaded_model_json)
+        # loading model weight
+        model.load_weights(weightPath)
+        # add model
+        self.model.append(model)
+
+    def predict_proba(self, iuPut):
+        for model in self.model:
+            predictProba = model.predict_proba(iuPut)[0]
+            if self.proba is None:
+                self.proba=predictProba
+            else:
+                self.proba+=predictProba
+        result = self.proba/float(len(self.model))
+        self.proba=None
+        return [result]
 
 def auto_resized(img,size):
     '''size = (width,height)'''
@@ -108,38 +135,28 @@ a = [6,7,4,3,8,0,10,9,2,1,11,5]
 for i in range(12):
     mapping_dict[i]=a[i]
 
+#----------------------------------------------------------------
 # Setting Testing data source
-Test_Dir = 'C:\\Users\\kentc\\Downloads\\Testset6'
-
-# Setting model path
-model_json_path = '..\\hub\\model\\2016_bot_004.json'
-model_weight_path = '..\\hub\\model\\2016_bot_004.h5'
+Test_Dir = 'C:\\Users\\kentc\\Downloads\\Testset 7'
 
 # Setting output file name
-output_file = '2016_bot_cv_test6.txt'
+output_file = '2016_bot_cv_test7_Nor_ensemble.txt'
 
 # The image preprocess should be the same
-img_rows= 64
-img_cols= 64
+img_rows= 92
+img_cols= 92
 img_channels=3
+samplewise_center=True
+samplewise_std_normalization=True
 
-# loading model struc
-json_file = open(model_json_path, 'r')
-loaded_model_json = json_file.read()
-json_file.close()
-model = model_from_json(loaded_model_json)
+# Setting model path and load
+model = Model_average()
+#model.add_model(jsonPath = '..\\hub\\model\\2016_bot_005.json',
+#                weightPath= '..\\hub\\model\\2016_bot_0050.h5')
+model.add_model(jsonPath = '..\\hub\\model\\2016_bot_006.json',
+                weightPath= '..\\hub\\model\\2016_bot_0061.h5')
 
-sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
-model.compile(optimizer=sgd,
-              loss='categorical_crossentropy',metrics=['accuracy'])
-print ('Successful loading Model')
-
-# loading model weight
-model.load_weights(model_weight_path)
-print ('Successful loading Model Weight')
-
-
-
+#-----------------------------------------------------------
 # process Unicode text
 
 with codecs.open(output_file,'w',encoding='utf-8') as f:
@@ -150,6 +167,11 @@ with codecs.open(output_file,'w',encoding='utf-8') as f:
         image = np.asarray(image, dtype = np.uint8)
         image = image.reshape(1, img_channels, img_rows, img_cols)
         image = image.astype('float32')
+
+        if samplewise_center:
+            image -= np.mean(image, axis=0, keepdims=True) # for theano
+        if samplewise_std_normalization:
+            image /= (np.std(image, axis=0, keepdims=True) + 1e-7) # for theano
 
         predictProba = model.predict_proba(image)[0]
 
@@ -168,5 +190,4 @@ with codecs.open(output_file,'w',encoding='utf-8') as f:
                                          top2_l,
                                          top2_p))
 print ('finished ')
-
 
