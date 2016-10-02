@@ -36,16 +36,16 @@ from keras.models import model_from_json
 11 wolf : 5
 '''
 
-class Model_average():
+class ModelAverage():
     def __init__(self):
         self.model=[]
         self.proba=None
 
     def add_model(self, jsonPath, weightPath):
         # model have to be loaded weight
-        json_file = open(jsonPath, 'r')
-        loaded_model_json = json_file.read()
-        json_file.close()
+        with open(jsonPath, 'r') as f:
+            loaded_model_json = f.read()
+
 
         # struc model
         model = model_from_json(loaded_model_json)
@@ -99,36 +99,6 @@ def genTrX(filePath, resolution, img_channels=3):
             img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
     return img
 
-def load_training(folderList, img_rows, img_cols, img_channels):
-    TrY = []
-    TrX = []
-    TrY_template = np.eye(len(folderList))
-    for eyeId, folderPath in enumerate(folderList):
-        for imgPath in TrainFilePath(folderPath) :
-            TrY.append(TrY_template[eyeId])
-            TrX.append(genTrX(imgPath, (img_rows,img_cols), img_channels))
-    print (len(TrX))
-    return TrX, TrY
-
-def create_folderList(rootDir):
-    result=[]
-    for a in os.listdir(rootDir):
-        a = os.path.join(rootDir, a)
-        if os.path.isdir(a):
-            result.append(a)
-    return result
-
-
-def reshapeShuffle(TrX, TrY, img_rows, img_cols, img_channels):
-    trainX = np.asarray(TrX, dtype = np.uint8)
-    trainX = trainX.reshape(trainX.shape[0], img_channels, img_rows, img_cols)
-    trainX = trainX.astype('float32')
-    trainY = np.asarray(TrY, dtype = np.float32)
-    # shuffle
-    trainX , trainY = shuffle(trainX,trainY)
-    print ('Train_X : ',trainX.shape,'Train_Y' ,trainY.shape)
-    return trainX , trainY
-
 # Create mapping list
 mapping_dict = {}
 a = [6,7,4,3,8,0,10,9,2,1,11,5]
@@ -137,11 +107,11 @@ for i in range(12):
 
 #----------------------------------------------------------------
 # Setting Testing data source
-Test_Dir = 'C:\\Users\\kentc\\Downloads\\Testset 7'
+Test_Dir = 'C:\\Users\\kentc\\Downloads\\Testset7'
 
 # Setting output file name
 output_file = '2016_bot_cv_test7_Nor_ensemble.txt'
-
+testing_file = 'D:\\2016bot_cv\\Dog'
 # The image preprocess should be the same
 img_rows= 92
 img_cols= 92
@@ -150,11 +120,11 @@ samplewise_center=True
 samplewise_std_normalization=True
 
 # Setting model path and load
-model = Model_average()
-#model.add_model(jsonPath = '..\\hub\\model\\2016_bot_005.json',
-#                weightPath= '..\\hub\\model\\2016_bot_0050.h5')
+model = ModelAverage()
+model.add_model(jsonPath = '..\\hub\\model\\2016_bot_005.json',
+                weightPath= '..\\hub\\model\\2016_bot_0050.h5')
 model.add_model(jsonPath = '..\\hub\\model\\2016_bot_006.json',
-                weightPath= '..\\hub\\model\\2016_bot_0061.h5')
+                weightPath= '..\\hub\\model\\2016_bot_0062.h5')
 
 #-----------------------------------------------------------
 # process Unicode text
@@ -165,13 +135,16 @@ with codecs.open(output_file,'w',encoding='utf-8') as f:
         print imgPath
         image = genTrX(imgPath, (img_rows,img_cols), img_channels)
         image = np.asarray(image, dtype = np.uint8)
-        image = image.reshape(1, img_channels, img_rows, img_cols)
+
         image = image.astype('float32')
 
+        # Since the training process contrain the augmentation
         if samplewise_center:
             image -= np.mean(image, axis=0, keepdims=True) # for theano
         if samplewise_std_normalization:
             image /= (np.std(image, axis=0, keepdims=True) + 1e-7) # for theano
+
+        image = image.reshape(1, img_channels, img_rows, img_cols)
 
         predictProba = model.predict_proba(image)[0]
 
