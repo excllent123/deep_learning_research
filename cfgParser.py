@@ -10,3 +10,4 @@ class Conf:
     def __getitem__(self, k):
         # return the value associated with the supplied key
         return self.__dict__.get(k, None)
+
