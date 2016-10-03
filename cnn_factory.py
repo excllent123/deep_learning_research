@@ -1,40 +1,88 @@
-from __future__ import print_function
-import numpy as np
-np.random.seed(1337)  # for reproducibility
-
-import os
-import sys
-import progressbar
-import argparse
-import commentjson as json
-
-from imutils import paths
-from skimage.io import imread
-import imageio
-import cv2
-
-from ipywidgets import interact, interactive, fixed
-import ipywidgets as widgets
-import matplotlib.pyplot as plt
-
-
-from sklearn.cross_validation import KFold
-from sklearn.utils import shuffle
-from sklearn.cross_validation import train_test_split
-
-
-from keras.datasets import mnist
+# import the necessary packages
+from keras.layers.convolutional import Convolution2D
+from keras.layers.convolutional import MaxPooling2D
+from keras.layers.core import Activation
+from keras.layers.core import Flatten
+from keras.layers.core import Dropout
+from keras.layers.core import Dense
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Flatten
-from keras.layers import Convolution2D, MaxPooling2D
-from keras.utils import np_utils
-from keras.optimizers import SGD
-from keras.optimizers import Adam
-from keras.utils import np_utils
-from keras.models import model_from_json
 
+class ConvNetFactory:
+    def __init__(self):
+        pass
 
-import os
+    @staticmethod
+    def build(name, *args, **kargs):
+        # define the network (i.e., string => function) mappings
+        mappings = {
+            "shallownet": ConvNetFactory.ShallowNet,
+            "lenet": ConvNetFactory.LeNet,
+            "karpathynet": ConvNetFactory.KarpathyNet,
+            "minivggnet": ConvNetFactory.MiniVGGNet}
 
+        # grab the builder function from the mappings dictionary
+        builder = mappings.get(name, None)
 
-#
+        # if the builder is None, then there is not a function that can be used
+        # to build to the network, so return None
+        if builder is None:
+            return None
+
+        # otherwise, build the network architecture
+        return builder(*args, **kargs)
+
+    @staticmethod
+    def ShallowNet(numChannels, imgRows, imgCols, numClasses, **kwargs):
+        # initialzie the model
+        model = Sequential()
+
+        # define the first (and only) CONV => RELU layer
+        model.add(Convolution2D(32, 3, 3, border_mode="same",
+            input_shape=(numChannels, imgRows, imgCols)))
+        model.add(Activation("relu"))
+
+        # add a FC layer followed by the soft-max classifier
+        model.add(Flatten())
+        model.add(Dense(numClasses))
+        model.add(Activation("softmax"))
+
+        # return the network architecture
+        return model
+
+    @staticmethod
+    def LeNet(numChannels, imgRows, imgCols, numClasses, activation="tanh", **kwargs):
+        # initialize the model
+        model = Sequential()
+
+        # define the first set of CONV => ACTIVATION => POOL layers
+        model.add(Convolution2D(20, 5, 5, border_mode="same",
+            input_shape=(numChannels, imgRows, imgCols)))
+        model.add(Activation(activation))
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+
+        # define the second set of CONV => ACTIVATION => POOL layers
+        model.add(Convolution2D(50, 5, 5, border_mode="same"))
+        model.add(Activation(activation))
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+
+        # define the first FC => ACTIVATION layers
+        model.add(Flatten())
+        model.add(Dense(500))
+        model.add(Activation(activation))
+
+        # define the second FC layer
+        model.add(Dense(numClasses))
+
+        # lastly, define the soft-max classifier
+        model.add(Activation("softmax"))
+
+        # return the network architecture
+        return model
+
+    @staticmethod
+    def KarpathyNet():
+        pass
+
+    @staticmethod
+    def MiniVGGNet():
+        pass
