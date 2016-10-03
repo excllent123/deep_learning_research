@@ -104,10 +104,15 @@ def reshapeShuffle(TrX, TrY, img_rows, img_cols, img_channels):
 def VGG_16(img_rows,img_cols,weights_path=None):
     model = Sequential()
     model.add(ZeroPadding2D((1,1),input_shape=(3,img_rows,img_cols)))
-    model.add(Convolution2D(32, 1, 1, border_mode='same', activation='relu'))
+    model.add(Convolution2D(48, 1, 1, border_mode='same', activation='relu'))
     model.add(AveragePooling2D(pool_size=(2, 2)))
-    model.add(Convolution2D(48, 3, 3, border_mode='same', activation='relu'))
-    model.add(Convolution2D(48, 3, 3, border_mode='same', activation='relu'))
+
+    model.add(Convolution2D(64, 3, 3, border_mode='same', activation='relu'))
+    model.add(Convolution2D(64, 3, 3, border_mode='same', activation='relu'))
+    model.add(AveragePooling2D(pool_size=(2, 2)))
+
+    model.add(Convolution2D(128, 3, 3, border_mode='same', activation='relu'))
+    model.add(Convolution2D(128, 3, 3, border_mode='same', activation='relu'))
     model.add(AveragePooling2D(pool_size=(2, 2)))
     model.add(Flatten())
     model.add(Dense(1000, activation='relu'))
@@ -199,9 +204,9 @@ for train, test in kf:
     Tr_Y = train_Y[train]
     Te_Y = train_Y[test]
     # fits the model on batches with real-time data augmentation:
-    batchSize = 50
+    batchSize = 45
     model.fit_generator(gen_Img.flow(Tr_X, Tr_Y, batch_size=batchSize),
-                    samples_per_epoch=len(Tr_X), nb_epoch=20, validation_data=gen_Img.flow(X_test, y_test,batch_size=batchSize),nb_val_samples=X_test.shape[0],callbacks=[remote])
+                    samples_per_epoch=len(Tr_X), nb_epoch=10, validation_data=gen_Img.flow(X_test, y_test,batch_size=batchSize),nb_val_samples=X_test.shape[0],callbacks=[remote])
     #validation_data=val_datagen.flow(val_X, val_y, batch_size=BATCH_SIZE)
     model.save_weights('../hub/model/{}.h5'.format(model_name+str(idx)),overwrite=True)
     print ('saving model weight as ' + '../hub/model/{}.h5'.format(model_name+str(idx)))

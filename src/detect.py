@@ -8,6 +8,7 @@ class ObjectDetector:
         self.desc = desc
 
     def detect(self, image, winDim, winStep=4, pyramidScale=1.5, minProb=0.7):
+        assert type(winDim)==tuple
         # initialize the list of bounding boxes and associated probabilities
         boxes = []
         probs = []

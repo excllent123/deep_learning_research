@@ -3,11 +3,14 @@ import argparse
 import numpy as np
 
 
-def get_args():
+def get_args(**kwargs):
     '''This function parses and return arguments passed in'''
     parser = argparse.ArgumentParser(
         description=''' Get conf file path''')
     # Add arguments
+    # Use
+    for key, value in kwargs.iteritems():
+        pass
     parser.add_argument(
         '-conf', '--conf', type=str, nargs='+',
         help='filePath, could be multi-files',required=True)
@@ -98,3 +101,25 @@ def non_max_suppression(boxes, probs, overlapThresh):
     # return only the bounding boxes that were picked
     return boxes[pick].astype("int")
 
+def gen_file_path(folderPath, constrain=None, size_limit=None, **kargs):
+    '''
+    (1) Output filepath and calssName
+    (2) folderPath
+          --label_1
+           -- xxx.jpg
+    The size_limit is to clip the size of images in each class
+    In order to avoid bias from unbalence data
+    '''
+    assert folderPath[-1]!='/'
+    if constrain is None:
+        constrain = ('avi', 'mp4','png','jpg','jpeg','bmp')
+    for (rootDir, dirNames, fileNames) in os.walk(folderPath):
+        count = 0
+        for fileName in fileNames:
+            if size_limit is not None :
+                if size_limit < count:
+                    break
+                    #continue
+            if fileName.split('.')[-1] in constrain:
+                yield (os.path.join(rootDir, fileName))
+                count+=1
