@@ -104,20 +104,26 @@ def reshapeShuffle(TrX, TrY, img_rows, img_cols, img_channels):
 def VGG_16(img_rows,img_cols,weights_path=None):
     model = Sequential()
     model.add(ZeroPadding2D((1,1),input_shape=(3,img_rows,img_cols)))
-    model.add(Convolution2D(48, 1, 1, border_mode='same', activation='relu'))
+    model.add(Convolution2D(24, 3, 3, border_mode='same', activation='relu'))
+    model.add(Convolution2D(24, 3, 3, border_mode='same', activation='relu'))
     model.add(AveragePooling2D(pool_size=(2, 2)))
 
-    model.add(Convolution2D(64, 3, 3, border_mode='same', activation='relu'))
-    model.add(Convolution2D(64, 3, 3, border_mode='same', activation='relu'))
+    model.add(Convolution2D(48, 3, 3, border_mode='same', activation='relu'))
+    model.add(Convolution2D(48, 3, 3, border_mode='same', activation='relu'))
     model.add(AveragePooling2D(pool_size=(2, 2)))
 
-    model.add(Convolution2D(128, 3, 3, border_mode='same', activation='relu'))
-    model.add(Convolution2D(128, 3, 3, border_mode='same', activation='relu'))
+    model.add(Convolution2D(72, 3, 3, border_mode='same', activation='relu'))
+    model.add(Convolution2D(72, 3, 3, border_mode='same', activation='relu'))
+    model.add(AveragePooling2D(pool_size=(2, 2)))
+
+    model.add(Convolution2D(96, 3, 3, border_mode='same', activation='relu'))
+    model.add(Convolution2D(96, 3, 3, border_mode='same', activation='relu'))
     model.add(AveragePooling2D(pool_size=(2, 2)))
     model.add(Flatten())
-    model.add(Dense(1000, activation='relu'))
+    model.add(Dense(1200, activation='relu'))
     model.add(Dropout(0.5))
-    model.add(Dense(400, activation='softmax'))
+    model.add(Dense(1200, activation='relu'))
+    model.add(Dropout(0.5))
     model.add(Dense(12, activation='softmax'))
 
     try :
@@ -180,13 +186,13 @@ gen_Img.fit(train_X)
 #==============================================================================
 # Define model
 
-model = VGG_16(img_rows,img_cols,weights_path='../hub/model/{}4.h5'.format(model_name))
+model = VGG_16(img_rows,img_cols,weights_path='../hub/model/{}2.h5'.format(model_name))
 #https://gist.github.com/baraldilorenzo/8d096f48a1be4a2d660d
 sgd = SGD(lr=0.1, decay=1e-6, momentum=0.8, nesterov=True)
 # if damping, use smaller lr
 
 #RMSprop(lr=0.001)
-model.compile(optimizer=sgd,
+model.compile(optimizer=RMSprop(lr=0.0001),
               loss='categorical_crossentropy',metrics=['accuracy'])
 
 model.summary()
