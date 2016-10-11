@@ -1,6 +1,7 @@
 import imutils
 import argparse
 import numpy as np
+import os
 
 
 def get_args(**kwargs):
@@ -45,7 +46,10 @@ def sliding_window(image, stepSize, windowSize):
     for y in xrange(0, image.shape[0], stepSize):
         for x in xrange(0, image.shape[1], stepSize):
             # yield the current window
-            yield (x, y, image[y:y + windowSize[1], x:x + windowSize[0]])
+            if len(image.shape)>=3:
+                yield (x, y, image[y:y + windowSize[1], x:x + windowSize[0],:3])
+            else:
+                yield (x, y, image[y:y + windowSize[1], x:x + windowSize[0]])
 
 def non_max_suppression(boxes, probs, overlapThresh):
     # if there are no boxes, return an empty list
