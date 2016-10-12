@@ -188,7 +188,7 @@ gen_Img.fit(train_X)
 
 model = VGG_16(img_rows,img_cols,weights_path='../hub/model/{}2.h5'.format(model_name))
 #https://gist.github.com/baraldilorenzo/8d096f48a1be4a2d660d
-sgd = SGD(lr=0.1, decay=1e-6, momentum=0.8, nesterov=True)
+sgd = SGD(lr=0.01, decay=1e-6, momentum=0.8, nesterov=True)
 # if damping, use smaller lr
 
 #RMSprop(lr=0.001)
