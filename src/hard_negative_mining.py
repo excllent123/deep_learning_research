@@ -18,7 +18,7 @@ from common_func import sliding_window, pyramid, gen_file_path
 import matplotlib.pyplot as plt
 
 # =============================================================================
-# Define 
+# Define command line interface variables
 
 cliVariable = argparse.ArgumentParser()
 
@@ -45,7 +45,7 @@ cliVariable.add_argument('-p', '--pyraScale', type=int,
 args = vars(cliVariable.parse_args())
 
 # =============================================================================
-# Define 
+# Define defualt variables
 
 if args['resolution'] is not None:
     RESOLUTION = args['resolution']
@@ -67,60 +67,28 @@ if args['pyraScale'] is not None:
 else:
     PYRAMID_SCALE =1.5
 
-# =============================================================================
-# Saving Path Handler 
-
-class HardMinng(object):
-    def __init__(self, img, descriptor, training_model):
-        pass
-
-class Node(object):
-    def __init__(self, **kwargs):
-        pass
-
-    def add_Lable(self, lable):
-        assert hasattr(nextNode, 'is_Lable') == True
-        pass
-
-    def add_Relation(self, nextNode, relation):
-        assert hasattr(nextNode, 'is_Node') == True
-
-    def is_Node(self):
-        pass
-
-class ObjMemo(Node):
-    def __init__(self):
-        pass
-
-class Lable(object):
-    def __init__(self, name):
-        self.Name = name
-
-    def is_Lable(self):
-        pass
-
-
-class VideoMemo(Node):
-    def __init__(self):
-        self.vidPath
-        self.vidName
-        self.frameID
-        self.objectSet
-        self.motionBase
-        
 
 # =============================================================================
+# Main 
+
 if __name__ =='__main__':
     _=0
+
     if not os.path.isdir(args['output']):
         os.makedirs(args['output'])
+    else:
+        raw_input('Output folder has already exist'
+            ': Hit control+c to cancel'
+            ' or Enter to continuse')
 
     for imgPath in gen_file_path(args['input']):
         img = imread(imgPath)
         # Standard Size
         img = cv2.resize(img, RESOLUTION , interpolation=cv2.INTER_LINEAR)
+
         for img in pyramid(img,PYRAMID_SCALE,(winHeight , winWeight)):
             for x,y,win in sliding_window(img, WinStep,(winHeight , winWeight)):
+
                 # the input dimension is critical
                 if win.shape[0] != winHeight or win.shape[1] != winWeight:
                     continue
