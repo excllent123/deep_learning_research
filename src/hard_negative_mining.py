@@ -1,51 +1,51 @@
 
 # =============================================================================
-# Author : Kent Chiu   
+# Author : Kent Chiu
 # =============================================================================
-# - Hard Mining from ImageSequence or Video 
-# - Extrate background imgs to trainable format 
-# - Store them into the Output folder 
+# - Hard Mining from ImageSequence or Video
+# - Extrate background imgs to trainable format
+# - Store them into the Output folder
 
 
 import os
-import argparse 
-import dlib 
+import argparse
+import dlib
 import cv2
-import imageio 
+import imageio
 from skimage.io import imread, imshow, imsave
 from common_func import sliding_window, pyramid, gen_file_path
 
 import matplotlib.pyplot as plt
 
 # =============================================================================
-# Define 
+# Define
 
 cliVariable = argparse.ArgumentParser()
 
 cliVariable.add_argument('-o', '--output', type=str, required=True,
     help='assign the output folder'
-        ',if not exist, would automate to create one') 
+        ',if not exist, would automate to create one')
 
 cliVariable.add_argument('-i', '--input', type=str, required=True,
-    help='assign the input Folder or path') 
+    help='assign the input Folder or path')
 
 cliVariable.add_argument('-w', '--winSize', type=int, nargs='+',
-    help='assign the winSize (height, wid)') 
+    help='assign the winSize (height, wid)')
 
 cliVariable.add_argument('-r', '--resolution',type=int, nargs='+',
-    help='assign the resolution (height,wid)') 
+    help='assign the resolution (height,wid)')
 
 cliVariable.add_argument('-s', '--winStep', type=int,
-    help='assign the window step size') 
+    help='assign the window step size')
 
 cliVariable.add_argument('-p', '--pyraScale', type=int,
-    help='assign the window step size') 
+    help='assign the window step size')
 
 
 args = vars(cliVariable.parse_args())
 
 # =============================================================================
-# Define 
+# Define
 
 if args['resolution'] is not None:
     RESOLUTION = args['resolution']
@@ -68,42 +68,9 @@ else:
     PYRAMID_SCALE =1.5
 
 # =============================================================================
-# Saving Path Handler 
-
-class Node(object):
-    def __init__(self, **kwargs):
-        pass
-
-    def add_Lable(self, lable):
-        assert hasattr(nextNode, 'is_Lable') == True
-        pass
-
-    def add_Relation(self, nextNode, relation):
-        assert hasattr(nextNode, 'is_Node') == True
-
-    def is_Node(self):
-        pass
-
-class ObjMemo(Node):
-    def __init__(self):
-        pass
-
-class Lable(object):
-    def __init__(self, name):
-        self.Name = name
-
-    def is_Lable(self):
-        pass
+# Saving Path Handler
 
 
-class VideoMemo(Node):
-    def __init__(self):
-        self.vidPath
-        self.vidName
-        self.frameID
-        self.objectSet
-        self.motionBase
-        
 
 # =============================================================================
 if __name__ =='__main__':
@@ -124,8 +91,8 @@ if __name__ =='__main__':
                 _+=1
 
 # =============================================================================
-# Example 
-# python hard_negative_mining.py 
+# Example
+# python hard_negative_mining.py
 # -i ~/MIT_Vedio/2D_DataSet/Bg_v3 -o ~/MIT_Vedio/2D_DataSet/Bg_v3_3030
 
 
