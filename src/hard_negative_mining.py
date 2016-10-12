@@ -70,6 +70,10 @@ else:
 # =============================================================================
 # Saving Path Handler 
 
+class HardMinng(object):
+    def __init__(self, img, descriptor, training_model):
+        pass
+
 class Node(object):
     def __init__(self, **kwargs):
         pass
