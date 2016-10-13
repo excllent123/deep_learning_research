@@ -137,7 +137,7 @@ with codecs.open(output_file,'w',encoding='utf-8') as f:
         image = np.asarray(image, dtype = np.uint8)
 
         image = image.astype('float32')
-
+        # ====================================================
         # Since the training process contrain the augmentation
         if samplewise_center:
             image -= np.mean(image, axis=0, keepdims=True) # for theano
