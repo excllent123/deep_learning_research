@@ -196,10 +196,10 @@ except Exception as err:
 
     # List the possible folder
     folderList = create_folderList(ROOT_Dir)
-    folderList = ['~/',
-    '',
-    '',
-    ''
+    folderList = ['~/MIT_Vedio/2D_DataSet/PureScrewDriver',
+    'RHwithScrewDriver',
+    'Bg_v3_3030',
+    'Rhand_v2'
     ]
     Train_X, Train_Y = load_training(folderList, img_rows, img_cols, img_channels)
 
