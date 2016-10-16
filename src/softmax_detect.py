@@ -1,7 +1,8 @@
 # import the necessary packages
 import common_func
-
+import numpy as np
 import gc
+import cv2
 # http://stackoverflow.com/questions/22440421/python-is-the-garbage-collector-run-before-a-memoryerror-is-raised
 # if there are hidden reference cycles
 # use gc.collect() to manually release the memory in each iteration
@@ -36,41 +37,39 @@ class Memo(object):
             print (err)
 
 # windim = (x,y) = 32, 32 this case
-def detection_test(x, model, winDim, pyramidScale=20,winStep=20, minProb=0.9995, numLabel=2):
+def detect(image, model, winDim,
+                   pyScale=20,winStep=20,
+                   minProb=0.9995, numLabel=2, negLabel=[0]):
     '''
     numLable = y-label number
     in this case, we have 2 lebels 0 and 1
+    negLable is the background, or any object lable that we dont detect
     '''
-    assert type(x)==int
-    assert x>=0
-    image = vid.get_data(x)
-    image = imutils.resize(image, width=200)
+    assert type(winDim)==tuple
+    height, width, channel = image.shape
 
     memo = Memo(numLabel)
-
     orig = image.copy()
-    img_gray = cv2.cvtColor( image , cv2.COLOR_BGR2GRAY)
+
     # loop over the image pyramid
-    for layer in common_func.pyramid(img_gray, scale=pyramidScale, minSize=winDim):
+    for layer in common_func.pyramid(image, scale=pyScale, minSize=winDim):
         # determine the current scale of the pyramid
         scale = image.shape[0] / float(layer.shape[0])
 
         # loop over the sliding windows for the current pyramid layer
-        for (x, y, window) in common_func.sliding_window(layer, winStep, winDim):
+        for (x, y, wD) in common_func.sliding_window(layer, winStep, winDim):
             # grab the dimensions of the window
-            (winH, winW) = window.shape[:2]
-
-
+            (winH, winW) = wD.shape[:2]
             # ensure the window dimensions match the supplied sliding window dimensions
             if winH == winDim[1] and winW == winDim[0]:
-                window = window.reshape(1,1,winW,winH)
+                # reshape
+                wD = wD.reshape(1,channel,winW,winH)
 
                 #return window [0][0]
-                probS = model.predict_proba(window,verbose=0)[0]
+                probS = model.predict_proba(wD,verbose=0)[0]
 
                 # check to see if the classifier has found an object with sufficient
                 # probability
-
                 for label, prob in enumerate(probS):
                     if prob>minProb:
                         (startX, startY) = (int(scale * x), int(scale * y))
@@ -81,12 +80,14 @@ def detection_test(x, model, winDim, pyramidScale=20,winStep=20, minProb=0.9995,
                         memo.addNode(label, box, prob)
     print ('END Detect')
     for label in range(numLabel):
+        if label in negLabel:
+            continue
         boxes, probs = memo.extratResult(label)
-        pick = common_func.non_max_suppression(np.array(boxes), probs, 0.7)
+        pick = common_func.non_max_suppression(np.array(boxes), probs, 0.6)
         # loop over the allowed bounding boxes and draw them
         for (startX, startY, endX, endY) in pick:
             if startY < 10 or startX < 10 or abs(startX - endX)>50 or abs(startX - endX)<15 :
                 pass
             else:
-                cv2.rectangle(orig, (startX, startY), (endX, endY), (0, 255, label*255), 2)
+                cv2.rectangle(orig, (startX, startY), (endX, endY), (0, 255, label*55), 2)
     return orig

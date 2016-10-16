@@ -4,13 +4,13 @@
 # =============================================================================
 # Des.
 # - This CNN_Agent Series Py is build on the Keras
-# 
-# Usage 
-# - Provide Image-Structure foder list 
-# - Define User Mapping 
-# - Define Model 
+#
+# Usage
+# - Provide Image-Structure foder list
+# - Define User Mapping
+# - Define Model
 # - Define Model_Name
-# - 
+# -
 # - Extrate background imgs to trainable format
 # - Store them into the Output folder
 
@@ -181,26 +181,21 @@ kfoldNums = 10
 
 model_name = __file__.split('\\')[-1].split('.')[0]
 
+name_data_h5 = 'test_factory_cnn'
 #==============================================================================
 # Read Data
 try :
-    with h5py.File('../hub/image_{}.h5'.format(img_rows),'r') as f:
+    with h5py.File('../hub/image_{}.h5'.format(name_data_h5),'r') as f:
         Train_X = np.array(f.get('x'))
         Train_Y = np.array(f.get('y'))
     print ('loded from hdf5 data')
 except Exception as err:
     print (str(err))
 
-    # Set the data source path
-    ROOT_Dir = 'D:\\2016bot_cv'
-
-    # List the possible folder
-    folderList = create_folderList(ROOT_Dir)
-    folderList = ['~/MIT_Vedio/2D_DataSet/PureScrewDriver',
-    'RHwithScrewDriver',
-    'Bg_v3_3030',
-    'Rhand_v2'
-    ]
+    folderList = ['D:\\2D_DataSet\\PureScrewDriver',
+    'D:\\2D_DataSet\\RHwithScrewDriver',
+    'D:\\2D_DataSet\\Bg_v3_3030',
+    'D:\\2D_DataSet\\Rhand_v2']
     Train_X, Train_Y = load_training(folderList, img_rows, img_cols, img_channels)
 
 #==============================================================================
@@ -217,7 +212,7 @@ X_test, y_test = reshapeShuffle(X_test, y_test, img_rows, img_cols, img_channels
 # Data Aug.
 
 gen_Img = ImageDataGenerator(featurewise_center=False,
-        rotation_range=40,
+        rotation_range=30,
         width_shift_range=0.2,
         height_shift_range=0.2,
         shear_range=0.2,
@@ -233,13 +228,13 @@ gen_Img.fit(train_X)
 #==============================================================================
 # Define model
 
-model = VGG_K00001(img_rows,img_cols,weights_path='../hub/model/{}2.h5'.format(model_name))
+model = VGG_K00001(img_rows,img_cols,weights_path='../hub/model/{}9.h5'.format(model_name))
 #https://gist.github.com/baraldilorenzo/8d096f48a1be4a2d660d
 sgd = SGD(lr=0.01, decay=1e-6, momentum=0.8, nesterov=True)
 # if damping, use smaller lr
 
 #RMSprop(lr=0.001)
-model.compile(optimizer=RMSprop(lr=0.0001),
+model.compile(optimizer=RMSprop(lr=0.001),
               loss='categorical_crossentropy',metrics=['accuracy'])
 
 model.summary()

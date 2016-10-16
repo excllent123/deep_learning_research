@@ -15,7 +15,6 @@ import imageio
 from skimage.io import imread, imshow, imsave
 from common_func import sliding_window, pyramid, gen_file_path
 
-import matplotlib.pyplot as plt
 
 # =============================================================================
 # Define command line interface variables
@@ -51,7 +50,7 @@ args = vars(cliVariable.parse_args())
 if args['resolution'] is not None:
     RESOLUTION = args['resolution']
 else :
-    RESOLUTION = (600, 1000)
+    RESOLUTION = (225, 400)
 
 if args['winSize'] is not None:
     winHeight , winWeight = args['winSize']
@@ -61,16 +60,16 @@ else:
 if args['winStep'] is not None:
     WinStep = args['winStep']
 else :
-    WinStep = int(winHeight/4.0)
+    WinStep = int(winHeight/2.0)
 
 if args['pyraScale'] is not None:
     PYRAMID_SCALE = args['pyraScale']
 else:
-    PYRAMID_SCALE =1.5
+    PYRAMID_SCALE =1.1
 
 
 # =============================================================================
-# Main 
+# Main
 
 if __name__ =='__main__':
     _=0
@@ -98,9 +97,8 @@ if __name__ =='__main__':
 
 # =============================================================================
 # Example
-# python hard_negative_mining.py
-# -i ~/MIT_Vedio/2D_DataSet/Bg_v3 -o ~/MIT_Vedio/2D_DataSet/Bg_v3_3030
-
+# python hard_negative_mining.py -i ~/MIT_Vedio/2D_DataSet/Bg_v3 -o ~/MIT_Vedio/2D_DataSet/Bg_v3_3030
+# python hard_negative_mining.py -i D:\\2D_DataSet\\Bg_v2 -o D:\\2D_DataSet\\Bg_v2_3030
 
 
 
