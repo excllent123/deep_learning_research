@@ -83,11 +83,12 @@ def detect(image, model, winDim,
         if label in negLabel:
             continue
         boxes, probs = memo.extratResult(label)
-        pick = common_func.non_max_suppression(np.array(boxes), probs, 0.6)
+        pick = common_func.non_max_suppression(np.array(boxes), probs, 0.4)
         # loop over the allowed bounding boxes and draw them
         for (startX, startY, endX, endY) in pick:
-            if startY < 10 or startX < 10 or abs(startX - endX)>50 or abs(startX - endX)<15 :
+            if startY < 10 or startX < 10 or abs(startX - endX)>80 or abs(startX - endX)<15 :
                 pass
             else:
-                cv2.rectangle(orig, (startX, startY), (endX, endY), (0, 255, label*55), 2)
+                cv2.rectangle(orig, (startX, startY), (endX, endY),
+                 (0, label*90, label*90), 2)
     return orig

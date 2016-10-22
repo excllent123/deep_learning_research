@@ -248,6 +248,10 @@ model.compile(optimizer=RMSprop(lr=0.001),
 
 model.summary()
 
+model_json = model.to_json()
+with open("../hub/model/{}.json".format(model_name), "w") as json_file:
+    json_file.write(model_json)
+print ('saving model struct as ' + "../hub/model/{}.json".format(model_name))
 #==============================================================================
 # Start Training
 remote = RemoteMonitor(root='http://localhost:9000')
@@ -263,10 +267,7 @@ model.fit_generator(gen_Img.flow(train_X, train_Y, batch_size=batchSize),
     validation_data=gen_Img.flow(X_test, y_test,batch_size=batchSize),
     nb_val_samples=X_test.shape[0],callbacks=callbacksList)
 # serialize model to JSON
-model_json = model.to_json()
-with open("../hub/model/{}.json".format(model_name), "w") as json_file:
-    json_file.write(model_json)
-print ('saving model struct as ' + "../hub/model/{}.json".format(model_name))
+
 
 
 
