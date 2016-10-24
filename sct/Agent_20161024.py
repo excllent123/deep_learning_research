@@ -221,11 +221,11 @@ X_test, y_test = reshapeShuffle(X_test, y_test, img_rows, img_cols, img_channels
 # Data Aug.
 
 gen_Img = ImageDataGenerator(featurewise_center=False,
-        rotation_range=20,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        shear_range=0.2,
-        zoom_range=0.2,
+        rotation_range=10,
+        width_shift_range=0.1,
+        height_shift_range=0.1,
+        shear_range=0.1,
+        zoom_range=0.1,
         horizontal_flip=True,
         samplewise_center=False,
         featurewise_std_normalization=False,
@@ -238,7 +238,7 @@ gen_Img.fit(train_X)
 # Define model
 
 model = VGG_K00001(img_rows,img_cols,
-                   weights_path='..\hub\model\Agent_20161015-21-0.99.h5')
+                   weights_path='..\hub\model\Agent_20161024-29-0.99.h5')
 #https://gist.github.com/baraldilorenzo/8d096f48a1be4a2d660d
 sgd = SGD(lr=0.01, decay=1e-6, momentum=0.8, nesterov=True)
 # if damping, use smaller lr
