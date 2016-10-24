@@ -3,7 +3,7 @@
 # Author : Kent Chiu
 # =============================================================================
 # Des.
-# - This Train DNN is
+# - This CNN_Agent Series Py is build on the Keras
 #
 # Usage
 # - Provide Image-Structure foder list
@@ -14,18 +14,28 @@
 # - Extrate background imgs to trainable format
 # - Store them into the Output folder
 
-import argparse
+import os, sys, math
+import numpy as np
+import cv2
+from skimage.io import imread
 
-#==============================================================================
-# Define Functions
+from sklearn.cross_validation import KFold
+from sklearn.utils import shuffle
+from sklearn.cross_validation import train_test_split
+# Data Augmentation
+from keras.preprocessing.image import ImageDataGenerator
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-j', '--jsonFile', required=True)
-parser.add_argument('-5', '--h5File', required=True)
-parser.add_argument('-v','--vidFile', help='input vid file')
-parser.add_argument('-i', '--imgFolder', help='input folder')
-parser.add_argument('-m', '--mode', help='t : as test mode')
-args = vars(parser.parse_args())
+# model build
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, Activation, Flatten
+
+from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D, AveragePooling2D
+from keras.optimizers import SGD
+from keras.utils import np_utils
+from keras.callbacks import ModelCheckpoint,RemoteMonitor
+from keras.optimizers import Adam, RMSprop
+from keras.models import model_from_json
+import h5py
 
 
 
@@ -168,7 +178,8 @@ img_rows= 30
 
 img_cols= 30
 
-img_channels=3
+img_channels=3#==============================================================================
+# Define Functions
 
 kfoldNums = 10
 
@@ -185,7 +196,7 @@ try :
 except Exception as err:
     print (str(err))
 
-    folderList = ['D:\\2D_DataSet\\Bg_v2_3030',
+    folderList = ['D:\\2D_DataSet\\Bg_v4_3030',
     'D:\\2D_DataSet\\RHwithScrewDriver',
     'D:\\2D_DataSet\\RhandBoost']
     Train_X, Train_Y = load_training(folderList, img_rows, img_cols, img_channels)
