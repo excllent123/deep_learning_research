@@ -67,8 +67,8 @@ def test_case():
         img = vid.get_data(idd)
         img = imutils.resize(img, width=400)
         print (img.shape)
-        img = detect(img, model=loaded_model,winDim=(30,30),pyScale=1.3,
-                     winStep=10, minProb=0.9999,
+        img = detect(img, model=loaded_model,winDim=(30,30),pyScale=1.2,
+                     winStep=5, minProb=1,
                      numLabel=3, negLabel=[0])
         win.clear_overlay()
         win.set_image(img)

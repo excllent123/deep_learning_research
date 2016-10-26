@@ -285,3 +285,4 @@ model.fit_generator(gen_Img.flow(train_X, train_Y, batch_size=batchSize),
 # serialize model to JSON
 
 # hub\model\Agent_20161025_v2-04-1.00.h5
+# hub\model\Agent_20161025_v2-14-1.00.h5
