@@ -22,6 +22,7 @@ from skimage.io import imread
 from sklearn.cross_validation import KFold
 from sklearn.utils import shuffle
 from sklearn.cross_validation import train_test_split
+
 # Data Augmentation
 from keras.preprocessing.image import ImageDataGenerator
 
@@ -36,8 +37,17 @@ from keras.callbacks import ModelCheckpoint,RemoteMonitor
 from keras.optimizers import Adam, RMSprop
 from keras.models import model_from_json
 import h5py
+import keras.backend as K
 
 
+def f1score(y_true, y_pred):
+    num_tp = K.sum(y_true*y_pred)
+    num_fn = K.sum(y_true*(1.0-y_pred))
+    num_fp = K.sum((1.0-y_true)*y_pred)
+    num_tn = K.sum((1.0-y_true)*(1.0-y_pred))
+    #print num_tp, num_fn, num_fp, num_tn
+    f1 = 2.0*num_tp/(2.0*num_tp+num_fn+num_fp)
+    return 1-f1
 
 
 #==============================================================================
@@ -75,7 +85,7 @@ def gen_FilePath01(folderPath, constrain=None, **kargs):
             if fileName.split('.')[-1] in constrain:
                 yield (os.path.join(rootDir, fileName))
 
-def gen_FilePath(folderPath, constrain=None, size_limit=1000000, **kargs):
+def gen_FilePath(folderPath, constrain=None, size_limit=10000, **kargs):
     '''
     (1) Output filepath and calssName
     (2) folderPath
@@ -136,7 +146,7 @@ def reshapeShuffle(TrX, TrY, img_rows, img_cols, img_channels):
     return trainX , trainY
 
 
-def VGG_K00001(img_rows,img_cols,weights_path=None):
+def VGG_K00002(img_rows,img_cols,weights_path=None):
     model = Sequential()
     model.add(ZeroPadding2D((1,1),input_shape=(3,img_rows,img_cols)))
     model.add(Convolution2D(32, 1, 1, border_mode='same', activation='relu'))
@@ -185,7 +195,7 @@ kfoldNums = 10
 
 model_name = __file__.split('\\')[-1].split('.')[0]
 
-name_data_h5 = 'test_factory_cnn'
+name_data_h5 = 'Agent_20161025_F1-04-0.48'
 #==============================================================================
 # Read Data
 try :
@@ -205,7 +215,10 @@ except Exception as err:
 # Call back
 filepath="..\\hub\\model\\"+model_name+"-{epoch:02d}-{val_acc:.2f}.h5"
 checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
-callbacksList = [checkpoint]
+
+remote = RemoteMonitor(root='http://localhost:9000')
+
+callbacksList = [checkpoint, remote]
 
 #==============================================================================
 # train_test_split
@@ -237,15 +250,21 @@ gen_Img.fit(train_X)
 #==============================================================================
 # Define model
 
-model = VGG_K00001(img_rows,img_cols,
-                   weights_path='..\hub\model\Agent_20161024-29-0.99.h5')
+# USe the pretrained model from 1015-99
+model = VGG_K00002(img_rows,img_cols,
+                   weights_path='..\hub/model/Agent_20161015-70-0.99.h5')
+
+
 #https://gist.github.com/baraldilorenzo/8d096f48a1be4a2d660d
 sgd = SGD(lr=0.01, decay=1e-6, momentum=0.8, nesterov=True)
 # if damping, use smaller lr
 
 #RMSprop(lr=0.001)
-model.compile(optimizer=RMSprop(lr=0.001),
-              loss='categorical_crossentropy',metrics=['accuracy'])
+# Baby sit your pretrained model
+model.compile(optimizer=RMSprop(lr=0.00001),
+              loss=f1score,metrics=['accuracy',f1score])
+
+# categorical_crossentropy
 
 model.summary()
 
@@ -255,8 +274,6 @@ with open("../hub/model/{}.json".format(model_name), "w") as json_file:
 print ('saving model struct as ' + "../hub/model/{}.json".format(model_name))
 #==============================================================================
 # Start Training
-remote = RemoteMonitor(root='http://localhost:9000')
-
 
 
 # ===============================================================
@@ -269,32 +286,5 @@ model.fit_generator(gen_Img.flow(train_X, train_Y, batch_size=batchSize),
     nb_val_samples=X_test.shape[0],callbacks=callbacksList)
 # serialize model to JSON
 
+# Agent_20161025_F1-410-1.00.h5 (Best)
 
-
-
-
-# =========================================
-# Load the pretrain method then ...
-# pop last layer, insert my own
-# =========================================
-# model.layers.pop()
-# model.add(Dropout(0.5))
-# model.add(Dense(len(Y_train[1])))
-# model.add(Activation('softmax'))
-
-'''
-# Inception Module
-
-input_img = Input(shape=(3, 256, 256))
-
-tower_1 = Convolution2D(64, 1, 1, border_mode='same', activation='relu')(input_img)
-tower_1 = Convolution2D(64, 3, 3, border_mode='same', activation='relu')(tower_1)
-
-tower_2 = Convolution2D(64, 1, 1, border_mode='same', activation='relu')(input_img)
-tower_2 = Convolution2D(64, 5, 5, border_mode='same', activation='relu')(tower_2)
-
-tower_3 = MaxPooling2D((3, 3), strides=(1, 1), border_mode='same')(input_img)
-tower_3 = Convolution2D(64, 1, 1, border_mode='same', activation='relu')(tower_3)
-
-output = merge([tower_1, tower_2, tower_3], mode='concat', concat_axis=1)`
-'''

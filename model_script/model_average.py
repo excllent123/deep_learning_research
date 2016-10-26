@@ -1,6 +1,19 @@
+# =============================================================================
+# Author : Kent Chiu
+# =============================================================================
+# Des.
+# - A thin interface for averaging the keras model
+#
+# Usage Example :
+# model = ModelAverage()
+# model.add_model(jsonPath = '..\\hub\\model\\2016_bot_005.json',
+#                 weightPath= '..\\hub\\model\\2016_bot_0050.h5')
+# model.add_model(jsonPath = '..\\hub\\model\\2016_bot_006.json',
+#                 weightPath= '..\\hub\\model\\2016_bot_0062.h5')
 
+from keras.models import model_from_json
 
-class Model_average():
+class ModelAverage():
     def __init__(self):
         self.model=[]
         self.proba=None

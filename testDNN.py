@@ -19,6 +19,8 @@
 #                          -5 hub/model/Agent_20161014-1130-1.00.h5
 # - python testDNN.py -m t -j hub/model/Agent_20161015.json
 #                          -5 hub/model/Agent_20161015-70-0.99.h5
+# - python Agent_20161024-02-0.99.h5 (pyScale 1.25, winstep=15, pro=0.935)
+# - python testDNN.py -m t -5 hub/model/Agent_20161025_F1-410-1.00.h5 -j hub/model/Agent_20161025_F1.json
 
 from keras.models import model_from_json
 import os
@@ -65,8 +67,8 @@ def test_case():
         img = vid.get_data(idd)
         img = imutils.resize(img, width=400)
         print (img.shape)
-        img = detect(img, model=loaded_model,winDim=(30,30),pyScale=1.25,
-                     winStep=15, minProb=0.935,
+        img = detect(img, model=loaded_model,winDim=(30,30),pyScale=1.3,
+                     winStep=10, minProb=0.9999,
                      numLabel=3, negLabel=[0])
         win.clear_overlay()
         win.set_image(img)
