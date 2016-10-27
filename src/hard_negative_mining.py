@@ -14,7 +14,7 @@ import cv2
 import imageio
 from skimage.io import imread, imshow, imsave
 from common_func import sliding_window, pyramid, gen_file_path
-
+import imutils
 
 # =============================================================================
 # Define command line interface variables
@@ -65,7 +65,7 @@ else :
 if args['pyraScale'] is not None:
     PYRAMID_SCALE = args['pyraScale']
 else:
-    PYRAMID_SCALE =1.1
+    PYRAMID_SCALE =1.2
 
 
 # =============================================================================
@@ -84,7 +84,7 @@ if __name__ =='__main__':
     for imgPath in gen_file_path(args['input']):
         img = imread(imgPath)
         # Standard Size
-        img = cv2.resize(img, RESOLUTION , interpolation=cv2.INTER_LINEAR)
+        img = imutils.resize(img, width=RESOLUTION[1])
 
         for img in pyramid(img,PYRAMID_SCALE,(winHeight , winWeight)):
             for x,y,win in sliding_window(img, WinStep,(winHeight , winWeight)):
