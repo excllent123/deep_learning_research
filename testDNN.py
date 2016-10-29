@@ -21,10 +21,12 @@
 #                          -5 hub/model/Agent_20161015-70-0.99.h5
 # - python Agent_20161024-02-0.99.h5 (pyScale 1.25, winstep=15, pro=0.935)
 # - python testDNN.py -m t -5 hub/model/Agent_20161025_F1-410-1.00.h5 -j hub/model/Agent_20161025_F1.json
+# python testDNN.py -m t -5 hub\model\Agent_20161027-42-1.00.h5 -j hub/model/Agent_20161027.json (0.96)
 
 from keras.models import model_from_json
 import os
 import dlib
+import cv2
 import imutils
 
 from skimage.io import imread
@@ -62,18 +64,18 @@ def test_case():
         vid = imageio.get_reader('/Users/kentchiu/'
             'MIT_Vedio/2016-01-21/10.167.10.158_01_20160121082638418_1.mp4')
     idd = 1
-    win = dlib.image_window()
+
     while True:
         img = vid.get_data(idd)
         img = imutils.resize(img, width=400)
         print (img.shape)
         img = detect(img, model=loaded_model,winDim=(30,30),pyScale=1.2,
-                     winStep=5, minProb=1,
+                     winStep=10, minProb=0.99999,
                      numLabel=3, negLabel=[0])
-        win.clear_overlay()
-        win.set_image(img)
-        dlib.hit_enter_to_continue()
-        idd+=20
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        cv2.imshow('After', img)
+        cv2.waitKey(1)
+        idd+=2
 
 
 
