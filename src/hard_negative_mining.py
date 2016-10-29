@@ -10,6 +10,7 @@
 # -----------------------------------------------------------------------------
 # python hard_negative_mining.py -i ~/MIT_Vedio/2D_DataSet/Bg_v3 -o ~/MIT_Vedio/2D_DataSet/Bg_v3_3030
 # python hard_negative_mining.py -i D:\\2D_DataSet\\Bg_v2 -o D:\\2D_DataSet\\Bg_v2_3030
+# python hard_negative_mining.py -i D:/test_id2/BG/sample -o D:/2D_DataSet/Bg_v5_3030_Rw400
 # =============================================================================
 # Advice
 # -----------------------------------------------------------------------------

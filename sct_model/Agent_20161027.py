@@ -146,23 +146,23 @@ def reshapeShuffle(TrX, TrY, img_rows, img_cols, img_channels):
     return trainX , trainY
 
 
-def VGG_K00002(img_rows,img_cols,weights_path=None):
+def VGG_K00003(img_rows,img_cols,weights_path=None):
     model = Sequential()
     model.add(ZeroPadding2D((1,1),input_shape=(3,img_rows,img_cols)))
-    model.add(Convolution2D(12, 1, 1, border_mode='same', activation='relu'))
-    model.add(Convolution2D(12, 1, 1, border_mode='same', activation='relu'))
+    model.add(Convolution2D(16, 1, 1, border_mode='same', activation='relu'))
+    model.add(Convolution2D(16, 1, 1, border_mode='same', activation='relu'))
 
 
     model.add(Convolution2D(24, 2, 2, border_mode='same', activation='relu'))
     model.add(Convolution2D(24, 2, 2, border_mode='same', activation='relu'))
 
 
-    model.add(Convolution2D(36, 2, 2, border_mode='same', activation='relu'))
-    model.add(Convolution2D(36, 2, 2, border_mode='same', activation='relu'))
+    model.add(Convolution2D(32, 2, 2, border_mode='same', activation='relu'))
+    model.add(Convolution2D(32, 2, 2, border_mode='same', activation='relu'))
 
 
-    model.add(Convolution2D(48, 2, 2, border_mode='same', activation='relu'))
-    model.add(Convolution2D(48, 2, 2, border_mode='same', activation='relu'))
+    model.add(Convolution2D(40, 2, 2, border_mode='same', activation='relu'))
+    model.add(Convolution2D(40, 2, 2, border_mode='same', activation='relu'))
     model.add(AveragePooling2D(pool_size=(2, 2)))
 
     model.add(Flatten())
@@ -204,7 +204,7 @@ try :
 except Exception as err:
     print (str(err))
 
-    folderList = ['D:\\2D_DataSet\\Bg_v4_3030',
+    folderList = ['D:\\2D_DataSet\\Bg_v5_3030_Rw400',
     'D:\\2D_DataSet\\RHwithScrewDriver',
     'D:\\2D_DataSet\\RhandBoost']
     Train_X, Train_Y = load_training(folderList, img_rows, img_cols, img_channels)
@@ -216,7 +216,7 @@ checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_
 
 remote = RemoteMonitor(root='http://localhost:9000')
 
-callbacksList = [checkpoint, remote]
+callbacksList = [checkpoint]
 
 #==============================================================================
 # train_test_split
@@ -249,8 +249,8 @@ gen_Img.fit(train_X)
 # Define model
 
 # USe the pretrained model from 1015-99
-model = VGG_K00002(img_rows,img_cols,
-                   weights_path='..\hub\model\Agent_20161025_v2-04-1.00.h5')
+model = VGG_K00003(img_rows,img_cols,
+                   weights_path='..\hub\model\Agent_20161027-05-1.00.h5')
 
 
 #https://gist.github.com/baraldilorenzo/8d096f48a1be4a2d660d
@@ -259,7 +259,7 @@ sgd = SGD(lr=0.01, decay=1e-6, momentum=0.8, nesterov=True)
 
 #RMSprop(lr=0.001)
 # Baby sit your pretrained model
-model.compile(optimizer=RMSprop(lr=0.0001),
+model.compile(optimizer=RMSprop(lr=0.000001),
               loss='categorical_crossentropy',metrics=['accuracy',f1])
 
 # categorical_crossentropy
@@ -279,10 +279,13 @@ print ('saving model struct as ' + "../hub/model/{}.json".format(model_name))
 
 batchSize = 45
 model.fit_generator(gen_Img.flow(train_X, train_Y, batch_size=batchSize),
-    samples_per_epoch=len(train_X), nb_epoch=3225,
+    samples_per_epoch=len(train_X), nb_epoch=3000,
     validation_data=gen_Img.flow(X_test, y_test,batch_size=batchSize),
     nb_val_samples=X_test.shape[0],callbacks=callbacksList)
 # serialize model to JSON
 
-# hub\model\Agent_20161025_v2-04-1.00.h5
-# hub\model\Agent_20161025_v2-14-1.00.h5
+
+# hub\model\Agent_20161027-03-0.99.h5
+# hub\model\Agent_20161027-42-1.00.h5
+# hub\model\Agent_20161027-05-1.00.h5 (12/1w)
+# hub\model\Agent_20161027-08-1.00.h5 (10/1w)
