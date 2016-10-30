@@ -29,49 +29,26 @@ class YoloDetect(object):
     def read_from(self):
         pass
 
-    def encode(self, classid, cX, cY, norBox_W, norBox_H):
-        '''
-        norBox_W, norBox_H : bbox w/h noremalized by rawImg w/h
-        where cX,cY is center of the bonding box        
-        -------------------------------------------------------------
-        Input : annotation information and bounding box size
-        Output : predictVector (S*S*(B*5+C)) 
-        '''
-
+    def encode(self, classid, cX, cY, boxW, boxH):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
         assert int(classid) <= int(C-1)
 
-        # init the output tensor container eight np  or tf style
-        # we serielized S*S from 2D to 1D array as row-index
+        # init skeleton
         confidence = np.zeros([S*S, B])
-        box_sqrtW  = np.zeros([S*S, B])
-        box_sqrtH  = np.zeros([S*S, B])
+        norsqrtW  = np.zeros([S*S, B])
+        norsqrtH  = np.zeros([S*S, B])
         offsetX    = np.zeros([S*S, B])
         offsetY    = np.zeros([S*S, B])
         class_prob = np.zeros([S*S, C])
-        # since B = 2, if we want to have same length, 
-        # we could devide the tensor to 11 tensors (2*5+C)
-        # this is what yolotf implemented in data.py
-        # however it is not a good way
-        # P(C1|Obj), ...P(C20|Obj)
-        # B1a, B1x, B1y, B1w, B1h
-        # B2a, B2x, B2y, B2w, B2h
-        # 
-        
 
-        # feed value in target-grid that contains the center of bbox
-
+        # Some para
         gridX, gridY = W/S, H/S
-        # The centerX/gridX is the scale the x unit from 1 to gridX
-        # The 2D(S*S) array is serielized to 1D
-
         tarGrid = int(cX/gridX)*S+int(cY/gridY) 
 
-        # Both normalize and offset is to encode tensor in [0,1]
+        # Asssign True Value
         confidence[tarGrid,:] = 1.0
-
-        box_sqrtW [tarGrid,:] = np.sqrt(norBox_W)
-        box_sqrtH [tarGrid,:] = np.sqrt(norBox_H)
+        norsqrtW [tarGrid,:] = np.sqrt(boxW/W)
+        norsqrtH [tarGrid,:] = np.sqrt(boxH/H)
         offsetX   [tarGrid,:] = (cX/gridX) - np.floor(cX/gridX)
         offsetY   [tarGrid,:] = (cY/gridY) - np.floor(cY/gridY)
         class_prob[tarGrid, classid] = 1.0
@@ -79,21 +56,12 @@ class YoloDetect(object):
         # Flatten  
         class_prob = class_prob.flatten()
         confidence = confidence.transpose().flatten()
-
-        # Frankly speaking, you can use any kind of flatten order 
-        # but, we are going to follow the darknet yolo 
-        # in order to use their pretraned wieight
-        # of coure, we also need to chagne darknet weight to cpkt for tf.
-        # 2D-Tensor Zip & Flatten
-        # our goal is {B1x, B1y, B1w, B1h, B2x, B2y, B2w, B2h} * 49
-        # now have have 49*{B1x,B2x} , ... {}
-        tmp = np.dstack([offsetX,offsetY,box_sqrtW,box_sqrtH]).flatten()
+        tmp = np.dstack([offsetX,offsetY,norsqrtW,norsqrtH]).flatten()
 
         return np.concatenate([class_prob, confidence, tmp])
 
 
     def decode(self, predictions,threshold=0.2 ,only_objectness=0):
-        
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
         boxes = []
         probs = np.zeros((S*S*B,C))
@@ -106,12 +74,14 @@ class YoloDetect(object):
                 scale = predictions[p_index]
                 box_index = S*S*(C+B) + (i*B+n)*4    
 
+                # init box & recovery parameter
                 new_box = Box(C)
-                new_box.x = (predictions[box_index + 0] + col) / S 
-                new_box.y = (predictions[box_index + 1] + row) / S 
-                new_box.h = pow(predictions[box_index + 2], 2) 
-                new_box.w = pow(predictions[box_index + 3], 2)     
+                new_box.x = (predictions[box_index + 0] + col) / S * W
+                new_box.y = (predictions[box_index + 1] + row) / S * H
+                new_box.w = pow(predictions[box_index + 2], 2) * W
+                new_box.h = pow(predictions[box_index + 3], 2) * H 
 
+                # 
                 for j in range(C):
                     class_index = i*C
                     prob = scale*predictions[class_index+j]
@@ -214,7 +184,7 @@ def convert_yolo_detections(predictions,C=20,B=2,S=7,threshold=0.2,only_objectne
 if __name__ =='__main__':
     detector = YoloDetect()
 
-    a = detector.encode(3, 22, 12, 123/448, 123/448)
+    a = detector.encode(3, 22, 12, 421/448, 123/448)
     print a.shape
     print 7*7*30
 
