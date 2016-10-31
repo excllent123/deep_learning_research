@@ -229,7 +229,7 @@ if __name__ =='__main__':
 
 
 # https://github.com/sunshineatnoon/Darknet.keras/blob/master/RunTinyYOLO.py
-# 
+# https://github.com/gliese581gg/YOLO_tensorflow/blob/master/YOLO_tiny_tf.py
 
 def do_nms_sort(boxes,total,classes=20,thresh=0.5):
     for k in range(classes):
