@@ -1,7 +1,7 @@
 
 from __future__ import division
 import numpy as np
-
+from keras.engine import Layer
 # =============================================================================
 # encode : (Ground Truth Box | Image ) -> Ground Truth Y
 # decode : Predict Tensor Y ->
@@ -10,10 +10,7 @@ import numpy as np
 # =============================================================================
 
 
-
-
-
-class YoloDetect(object):
+class YoloDetect(Layer):
     def __init__(self, numClass=20, rawImgW=448, rawImgH=448, S=7, B=2, thred=0.2):
         self.S = S
         self.B = B
@@ -22,8 +19,13 @@ class YoloDetect(object):
         self.H = rawImgH
         self.threshold = thred
         self.iou_threshold=0.5
-        self.classMap  =  ["aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train","tvmonitor"]
+        self.classMap  =  ["aeroplane", "bicycle", "bird", "boat", 
+        "bottle", "bus", "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train","tvmonitor"]
 
+    def set_class_map(self, mappingList):
+        assert type(mappingList)==list
+        assert len(mappingList) == self.C
+        self.classMap=mappingList
 
     def read_from(self):
         pass
@@ -32,7 +34,7 @@ class YoloDetect(object):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
         assert int(classid) <= int(C-1)
 
-        class_prob = np.zeros([S, S, C   ])
+        classProb  = np.zeros([S, S, C   ])
         confidence = np.zeros([S, S, B   ])
         boxes      = np.zeros([S, S, B, 4])
 
@@ -41,7 +43,7 @@ class YoloDetect(object):
         tarIdX, tarIdY = int(cX/gridX) , int(cY/gridY)
 
         # assign the true value
-        class_prob[tarIdX, tarIdY, classid] = 1.0
+        classProb[tarIdX, tarIdY, classid] = 1.0
         confidence[tarIdX, tarIdY, :      ] = 1.0
 
         # y,x,w,h , this order is really odor and killed me one day...
@@ -50,53 +52,44 @@ class YoloDetect(object):
         boxes[tarIdX, tarIdY, :, 2] = np.sqrt(boxW/W)
         boxes[tarIdX, tarIdY, :, 3] = np.sqrt(boxH/H)
 
-        output = np.concatenate([class_prob.flatten(), confidence.flatten(), boxes.flatten() ])
-
+        output = np.concatenate([classProb.flatten(), confidence.flatten(), boxes.flatten() ])
         return output
 
-    def decode(self, predictions,threshold=0.2 ,only_objectness=0):
+    def decode(self, prediction,threshold=0.2 ,only_objectness=0):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
-        probs = np.zeros((S,S,B,C))
+        
+        classProb  = np.reshape(prediction[0:S*S*C], (S,S,C))
+        confidence = np.reshape(prediction[S*S*C: S*S*(C+B)], (S,S,B)) # confidence
+        boxes      = np.reshape(prediction[S*S*(C+B):],(S,S,B,4))
 
-        class_probs = np.reshape(output[0:S*S*C], (S,S,C))
-        scales = np.reshape(output[S*S*C: S*S*(C+B)], (S,S,B)) # confidence
-        boxes = np.reshape(output[S*S*(C+B):],(S,S,B,4))
-        pass
-
-
-    def loss(truY, preY):
-        coord_1()+coord_2()+()+ noobj_()
-        pass
-
-
-    def interpret_output(self,output):
-        probs = np.zeros((7,7,2,20))
-        class_probs = np.reshape(output[0:980],(7,7,20))
-        scales = np.reshape(output[980:1078],(7,7,2))# confidence
-        boxes = np.reshape(output[1078:],(7,7,2,4))
-        offset = np.transpose(np.reshape(np.array([np.arange(7)]*14),(2,7,7)),(1,2,0))
-
+        # offset (7,7,2) mask, retrieve from offset
+        offset = np.transpose(np.reshape(np.array([np.arange(S)]*S*B),(B,S,S)),(1,2,0))
         boxes[:,:,:,0] += offset
         boxes[:,:,:,1] += np.transpose(offset,(1,0,2))
-        boxes[:,:,:,0:2] = boxes[:,:,:,0:2] / 7.0
+        boxes[:,:,:,0:2] = boxes[:,:,:,0:2] / float(S)
+
+        # retrieve from sqrt
         boxes[:,:,:,2] = np.multiply(boxes[:,:,:,2],boxes[:,:,:,2])
         boxes[:,:,:,3] = np.multiply(boxes[:,:,:,3],boxes[:,:,:,3])
 
+        # retrieve from normalization
         boxes[:,:,:,0] *= self.W
         boxes[:,:,:,1] *= self.H
         boxes[:,:,:,2] *= self.W
         boxes[:,:,:,3] *= self.H
 
-        for i in range(2):
-            for j in range(20):
-                probs[:,:,i,j] = np.multiply(class_probs[:,:,j],scales[:,:,i])
+        # Pr(class|Obj) * Pr(obj) = Evaluate Proba
+        eProbs = np.zeros((S,S,B,C))
+        for i in range(B):
+            for j in range(C):
+                eProbs[:,:,i,j] = np.multiply(classProb[:,:,j],confidence[:,:,i])
 
-        filter_mat_probs = np.array(probs>=self.threshold,dtype='bool')
-
+        # Filter 
+        filter_mat_probs = np.array(eProbs >= self.threshold,dtype='bool')
         filter_mat_boxes = np.nonzero(filter_mat_probs)
-        print filter_mat_boxes
+
         boxes_filtered = boxes[filter_mat_boxes[0],filter_mat_boxes[1],filter_mat_boxes[2]]
-        probs_filtered = probs[filter_mat_probs]
+        probs_filtered = eProbs[filter_mat_probs]
         classes_num_filtered = np.argmax(filter_mat_probs,axis=3)[filter_mat_boxes[0],filter_mat_boxes[1],filter_mat_boxes[2]]
 
         argsort = np.array(np.argsort(probs_filtered))[::-1]
@@ -104,6 +97,8 @@ class YoloDetect(object):
         probs_filtered = probs_filtered[argsort]
         classes_num_filtered = classes_num_filtered[argsort]
 
+        # select the best pridect box with the ideal similar to nms
+        # seems to be not necessary in some conditions
         for i in range(len(boxes_filtered)):
             if probs_filtered[i] == 0 : continue
             for j in range(i+1,len(boxes_filtered)):
@@ -121,6 +116,11 @@ class YoloDetect(object):
 
         return result
 
+    def loss(truY, preY):
+        coord_1()+coord_2()+()+ noobj_()
+        pass
+
+
     def iou(self,box1,box2):
         tb = min(box1[0]+0.5*box1[2],box2[0]+0.5*box2[2])-max(box1[0]-0.5*box1[2],box2[0]-0.5*box2[2])
         lr = min(box1[1]+0.5*box1[3],box2[1]+0.5*box2[3])-max(box1[1]-0.5*box1[3],box2[1]-0.5*box2[3])
@@ -130,14 +130,21 @@ class YoloDetect(object):
 
 
 if __name__ =='__main__':
+    detector2 = YoloDetect(S=4, B=3)
     detector = YoloDetect()
     for cX,cY in [(50,50),(50,150),(10,245),(440,440)]:
         print ('=======')
         print (cX,cY)
 
         a = detector.encode(3, cX, cY, 112, 12)
+        b = detector2.encode(3, cX,cY,112,13) 
 
-        print detector.interpret_output(a)
+        print detector.decode(a)
+        #print detector.interpret_output(a)
+        
+        print ('====')
+        print detector2.decode(b)
+
 
     #assert b == [3,115,242, 100/448, 120/448]
 
