@@ -65,6 +65,7 @@ class YoloDetect(object):
 
 
     def loss(truY, preY):
+        coord_1()+coord_2()+()+ noobj_()
         pass
 
 
@@ -116,7 +117,7 @@ class YoloDetect(object):
 
         result = []
         for i in range(len(boxes_filtered)):
-            result.append([self.classMap[classes_num_filtered[i]],boxes_filtered[i][0],boxes_filtered[i][1],boxes_filtered[i][2],boxes_filtered[i][3],probs_filtered[i]])
+            result.append([self.classMap[classes_num_filtered[i]],boxes_filtered[i][1],boxes_filtered[i][0],boxes_filtered[i][2],boxes_filtered[i][3],probs_filtered[i]])
 
         return result
 
