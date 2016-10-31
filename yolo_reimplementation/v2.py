@@ -12,6 +12,15 @@ import numpy as np
 
 
 
+class Box(object):
+    def __init__(self,numClass):
+        self.x = 0
+        self.y = 0
+        self.h = 0
+        self.w = 0
+        self.class_num = 0
+        self.probs = np.zeros((numClass,1))
+
 
 class YoloDetect(object):
     def __init__(self, numClass=20, rawImgW=448, rawImgH=448, S=7, B=2, thred=0.2):
@@ -32,39 +41,72 @@ class YoloDetect(object):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
         assert int(classid) <= int(C-1)
 
-        class_prob = np.zeros([S, S, C   ])
-        confidence = np.zeros([S, S, B   ])
-        boxes      = np.zeros([S, S, B, 4])
+        # init skeleton, since we are going to output 1D tensor
+        class_prob = np.zeros([S*S, C]).flatten()
+        confidence = np.zeros([S*S, B]).flatten()
+        offsetX    = np.zeros([S*S, B]).flatten()
+        offsetY    = np.zeros([S*S, B]).flatten()
+        norsqrtW   = np.zeros([S*S, B]).flatten()
+        norsqrtH   = np.zeros([S*S, B]).flatten()
 
-        # target the center grid
-        gridX, gridY = W/S, H/S
-        tarIdX, tarIdY = int(cX/gridX) , int(cY/gridY)
+        # Asssign True Value to the flatten tensor to target
+        gridX, gridY = int(W/S), int(H/S)
+        tarGrid = int(cX/gridX)*(S)+int(cY/gridY)
 
-        # assign the true value
-        class_prob[tarIdX, tarIdY, classid] = 1.0
-        confidence[tarIdX, tarIdY, :      ] = 1.0
+        class_prob[tarGrid*C + classid] = 1.0
+        for n in range(B):
+            confidence[tarGrid*(1+n)] = 1.0
+            offsetX   [tarGrid*(1+n)] = (cX/gridX) - int(cX/gridX)
+            offsetY   [tarGrid*(1+n)] = (cY/gridY) - int(cY/gridY)
+            norsqrtW  [tarGrid*(1+n)] = np.sqrt(boxW/W)
+            norsqrtH  [tarGrid*(1+n)] = np.sqrt(boxH/H)
+        #
+        # Since here we want a S*S*(B*5+C) Tensor
+        return np.concatenate([class_prob,
+                               confidence,
+                               offsetX   ,
+                               offsetY   ,
+                               norsqrtW  ,
+                               norsqrtH   ])
 
-        # y,x,w,h , this order is really odor and killed me one day...
-        boxes[tarIdX, tarIdY, :, 1] = (cX/gridX) - int(cX/gridX)
-        boxes[tarIdX, tarIdY, :, 0] = (cY/gridY) - int(cY/gridY)
-        boxes[tarIdX, tarIdY, :, 2] = np.sqrt(boxW/W)
-        boxes[tarIdX, tarIdY, :, 3] = np.sqrt(boxH/H)
 
-        output = np.concatenate([class_prob.flatten(), confidence.flatten(), boxes.flatten() ])
-
-        return output
 
     def decode(self, predictions,threshold=0.2 ,only_objectness=0):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
-        probs = np.zeros((S,S,B,C))
+        boxes = []
+        probs = np.zeros((S*S*B,C))
+        for i in range(S*S):
+            row = int(i / S)
+            col = i % S
+            for n in range(B):
+                index = i*B+n
+                p_index = S*S*C+i*B+n # i is the grid number [1, S*S]
+                scale = predictions[p_index]
+                box_index = S*S*(C+B) + i*B*4 + n*4
 
-        class_probs = np.reshape(output[0:S*S*C], (S,S,C))
-        scales = np.reshape(output[S*S*C: S*S*(C+B)], (S,S,B)) # confidence
-        boxes = np.reshape(output[S*S*(C+B):],(S,S,B,4))
-        pass
+
+                # init box & recovery parameter
+                new_box = Box(C)
+                new_box.x = (predictions[box_index + 0] + row)/ S* W
+                new_box.y = (predictions[box_index + 1] + col)/ S* H
+                new_box.w = pow(predictions[box_index + 2], 2)* W
+                new_box.h = pow(predictions[box_index + 3], 2)* H
+
+                # Pr(class|obj) * Pr(obj)
+                for j in range(C):
+                    class_index = i*C
+                    prob = scale*predictions[class_index+j]
+                    if(prob > threshold):
+                        new_box.probs[j] = prob
+                    else:
+                        new_box.probs[j] = 0
+                if(only_objectness):
+                    new_box.probs[0] = scale
+                boxes.append(new_box)
+        return boxes
 
 
-    def loss(truY, preY):
+    def loss():
         pass
 
 
@@ -130,11 +172,14 @@ class YoloDetect(object):
 
 if __name__ =='__main__':
     detector = YoloDetect()
-    for cX,cY in [(50,50),(50,150),(10,245),(440,440)]:
+    for cX,cY in [(50,50),(50,150),(50,125),(440,440)]:
         print ('=======')
         print (cX,cY)
 
         a = detector.encode(3, cX, cY, 112, 12)
+        b = detector.decode(a)
+        tar = int(cX/(448/7))*7+int(cY/(448/7))
+        print b[tar].probs , b[tar].x , b[tar].y, b[tar].w , b[tar].h
 
         print detector.interpret_output(a)
 
