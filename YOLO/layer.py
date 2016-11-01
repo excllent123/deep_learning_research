@@ -2,11 +2,11 @@
 from __future__ import division
 import numpy as np
 from keras.engine import Layer
+
 # =============================================================================
 # encode : (Ground Truth Box | Image ) -> Ground Truth Y
 # decode : Predict Tensor Y ->
-# the encode and decode are symmetric in logic, however since the prediction
-# may contain multi-objects, the output object should be more complicated
+# the encode and decode are symmetric in logic
 # =============================================================================
 
 
@@ -22,14 +22,14 @@ class YoloDetect(Layer):
         "bottle", "bus", "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train","tvmonitor"]
 
     def set_class_map(self, mappingList):
-        assert type(mappingList)==list
-        assert len(mappingList) == self.C
+        assert type(mappingList)==list ; assert len(mappingList) == self.C
         self.classMap=mappingList
 
     def encode(self, classid, cX, cY, boxW, boxH):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
         assert int(classid) <= int(C-1)
 
+        # init
         classProb  = np.zeros([S, S, C   ])
         confidence = np.zeros([S, S, B   ])
         boxes      = np.zeros([S, S, B, 4])
@@ -65,19 +65,15 @@ class YoloDetect(Layer):
             confidence = np.reshape(pred[S*S*C: S*S*(C+B)], (S*S,B)) 
             boxes      = np.reshape(pred[S*S*(C+B):]      , (S*S,B,4))
 
-        elif mode == 1 :
-            classProb  = np.reshape(pred[0:S*S*C]         , (S*S*C))
-            confidence = np.reshape(pred[S*S*C: S*S*(C+B)], (S*S*B)) 
-            boxes      = np.reshape(pred[S*S*(C+B):]      , (S*S*B,4))
-
         return classProb, confidence, boxes        
 
-    def decode(self, prediction, threshold):
-        pass
-
-    def interpret(self, prediction,threshold=0.2 ,only_objectness=0):
+    def decode(self, prediction,threshold=0.2 ,only_objectness=0):
+        '''
+        this part is modified from https://github.com/gliese581gg/YOLO_tensorflow
+        '''
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
-        classProb ,confidence, boxes = self.traDim(prediction)
+        classProb ,confidence, boxes = self.traDim(prediction, mode =3)
+
         # offset (7,7,2) mask, retrieve from offset
         offset = np.transpose(np.reshape(np.array([np.arange(S)]*S*B),(B,S,S)),(1,2,0))
         boxes[:,:,:,1] += offset
@@ -89,10 +85,8 @@ class YoloDetect(Layer):
         boxes[:,:,:,3] = np.multiply(boxes[:,:,:,3],boxes[:,:,:,3])
 
         # retrieve from normalization
-        boxes[:,:,:,0] *= self.W
-        boxes[:,:,:,1] *= self.H
-        boxes[:,:,:,2] *= self.W
-        boxes[:,:,:,3] *= self.H
+        boxes[:,:,:,0] *= self.W ; boxes[:,:,:,1] *= self.H
+        boxes[:,:,:,2] *= self.W ; boxes[:,:,:,3] *= self.H
 
         # Pr(class|Obj) * Pr(obj) = Evaluate Proba
         eProbs = np.zeros((S,S,B,C))
@@ -138,7 +132,7 @@ class YoloDetect(Layer):
         truCP ,truConf, truB = self.traDim(truY, mode=2)
         preCP ,preConf, preB = self.traDim(preY, mode=2)
 
-        # Select for responsible box by IOU
+        # Select for responsible box which with max IOU
         iouT = self.iouTensor(truB,preB)           # iouT (7*7,2)
         iouT = np.argmax(iouT, axis=1).astype(int) # (7*7)
 
@@ -147,14 +141,14 @@ class YoloDetect(Layer):
         truConf = np.array([truConf[i,j] for i,j in enumerate(iouT)])
         preConf = np.array([preConf[i,j] for i,j in enumerate(iouT)])
 
-        # Obj or noobj
+        # Obj or noobj is actually only depend on truth
         objMask  = np.array([ max(i) for i in truCP])
         nobjMask = 1 - np.array([ max(i) for i in truCP])
 
-        loss_ += sum(pow( (truB-preB).sum(axis=1)    * objMask , 2)) * COORD 
-        loss_ += sum(pow( (truConf- preConf)         * objMask , 2))
-        loss_ += sum(pow( (truConf- preConf)         * nobjMask, 2)) * NOOBJ
-        loss_ += sum(pow( (truCP- preCP).sum(axis=1) * objMask , 2))
+        loss_ += sum(pow( (truB-preB), 2).sum(axis=1)    * objMask  ) * COORD 
+        loss_ += sum(pow( (truConf- preConf) , 2)        * objMask  )
+        loss_ += sum(pow( (truConf- preConf), 2)         * nobjMask ) * NOOBJ
+        loss_ += sum(pow( (truCP- preCP), 2).sum(axis=1) * objMask  )
         return loss_
 
     def boxArea(self, box):
@@ -164,7 +158,6 @@ class YoloDetect(Layer):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
         assert box1.shape == box2.shape == (S*S,B,4)
         
-        # operation broadcast to elementwise 
         fmin = np.vectorize(min)
         fmax = np.vectorize(max)
 
@@ -176,13 +169,10 @@ class YoloDetect(Layer):
                       box1[:,:,1]+0.5*box2[:,:,3])
         maxL   = fmax(box1[:,:,1]-0.5*box2[:,:,3],
                       box1[:,:,1]-0.5*box2[:,:,3])
-
         # intersection
-        inters = (minTop-maxBot).clip(min=0)* (minR-maxL).clip(min=0)
-
-        avoidZero = 0.000000001
-        # Return IOU 
-        return inters/ (self.boxArea(box1)+ self.boxArea(box2)- inters+avoidZero)
+        inters = (minTop-maxBot).clip(min=0)* (minR-maxL).clip(min=0) 
+        noZero = 0.000000001 # Return IOU and avoid devide zero
+        return inters/ (self.boxArea(box1)+ self.boxArea(box2)- inters+ noZero)
 
     def iou(self,box1,box2):
         tb = min(box1[0]+0.5*box1[2],
@@ -199,26 +189,18 @@ class YoloDetect(Layer):
 
 
 if __name__ =='__main__':
-
-
     detector = YoloDetect()
-    a = detector.encode(3, 50, 50, 112, 12)
-    b = detector.encode(3, 53, 53, 112, 12)
+    a = detector.encode(3, 22, 12, 123, 123)
+    b = detector.encode(4, 22, 12, 123, 123)
+    c = detector.encode(3, 22, 12, 123, 123)
+    d = detector.encode(4, 23, 15, 111, 121)
+    print detector.decode(a)
+    print detector.decode(b)
+    print detector.decode(c)
+    print detector.loss(a, c)
+    print detector.loss(a, b)
+    print detector.loss(d, b)
 
-
-    #print detector.interpret(a)
-    c,_,box1 = detector.traDim(a)
-    fmax = np.vectorize(max)
-
-    #cd = [max(i) for i in c]
-
-    _,_,box2 = detector.traDim(b)
-    #print detector.iouTensor(box1,box2)
-
-    # TEST 
-    print detector.loss(a,b)
-
-    #np.random.randint(1,3,[7,7,2,4])
 
 
 
