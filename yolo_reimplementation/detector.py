@@ -1,7 +1,7 @@
 
 from __future__ import division
 import numpy as np
-from keras.engine import Layer
+#from keras.engine import Layer
 # =============================================================================
 # encode : (Ground Truth Box | Image ) -> Ground Truth Y
 # decode : Predict Tensor Y ->
@@ -10,7 +10,7 @@ from keras.engine import Layer
 # =============================================================================
 
 
-class YoloDetect(Layer):
+class YoloDetect(object):
     def __init__(self, numClass=20, rawImgW=448, rawImgH=448, S=7, B=2, thred=0.2):
         self.S = S
         self.B = B
@@ -19,16 +19,13 @@ class YoloDetect(Layer):
         self.H = rawImgH
         self.threshold = thred
         self.iou_threshold=0.5
-        self.classMap  =  ["aeroplane", "bicycle", "bird", "boat", 
+        self.classMap  =  ["aeroplane", "bicycle", "bird", "boat",
         "bottle", "bus", "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train","tvmonitor"]
 
     def set_class_map(self, mappingList):
         assert type(mappingList)==list
         assert len(mappingList) == self.C
         self.classMap=mappingList
-
-    def read_from(self):
-        pass
 
     def encode(self, classid, cX, cY, boxW, boxH):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
@@ -46,26 +43,29 @@ class YoloDetect(Layer):
         classProb[tarIdX, tarIdY, classid] = 1.0
         confidence[tarIdX, tarIdY, :      ] = 1.0
 
-        # y,x,w,h , this order is really odor and killed me one day...
-        boxes[tarIdX, tarIdY, :, 1] = (cX/gridX) - int(cX/gridX)
-        boxes[tarIdX, tarIdY, :, 0] = (cY/gridY) - int(cY/gridY)
+        # x,y,w,h
+        boxes[tarIdX, tarIdY, :, 0] = (cX/gridX) - int(cX/gridX)
+        boxes[tarIdX, tarIdY, :, 1] = (cY/gridY) - int(cY/gridY)
         boxes[tarIdX, tarIdY, :, 2] = np.sqrt(boxW/W)
         boxes[tarIdX, tarIdY, :, 3] = np.sqrt(boxH/H)
 
-        output = np.concatenate([classProb.flatten(), confidence.flatten(), boxes.flatten() ])
-        return output
+        return np.concatenate([classProb.flatten(),confidence.flatten(),
+                               boxes.flatten()])
 
-    def decode(self, prediction,threshold=0.2 ,only_objectness=0):
+    def decodeT(self, prediction):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
-        
         classProb  = np.reshape(prediction[0:S*S*C], (S,S,C))
-        confidence = np.reshape(prediction[S*S*C: S*S*(C+B)], (S,S,B)) # confidence
+        confidence = np.reshape(prediction[S*S*C: S*S*(C+B)], (S,S,B)) #
         boxes      = np.reshape(prediction[S*S*(C+B):],(S,S,B,4))
+        return classProb, confidence, boxes
 
+    def interpret(self, prediction,threshold=0.2 ,only_objectness=0):
+        S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
+        classProb ,confidence, boxes = self.decodeT(prediction)
         # offset (7,7,2) mask, retrieve from offset
         offset = np.transpose(np.reshape(np.array([np.arange(S)]*S*B),(B,S,S)),(1,2,0))
-        boxes[:,:,:,0] += offset
-        boxes[:,:,:,1] += np.transpose(offset,(1,0,2))
+        boxes[:,:,:,1] += offset
+        boxes[:,:,:,0] += np.transpose(offset,(1,0,2))
         boxes[:,:,:,0:2] = boxes[:,:,:,0:2] / float(S)
 
         # retrieve from sqrt
@@ -82,9 +82,9 @@ class YoloDetect(Layer):
         eProbs = np.zeros((S,S,B,C))
         for i in range(B):
             for j in range(C):
-                eProbs[:,:,i,j] = np.multiply(classProb[:,:,j],confidence[:,:,i])
+                eProbs[:,:,i,j]=np.multiply(classProb[:,:,j],confidence[:,:,i])
 
-        # Filter 
+        # Filter
         filter_mat_probs = np.array(eProbs >= self.threshold,dtype='bool')
         filter_mat_boxes = np.nonzero(filter_mat_probs)
 
@@ -98,7 +98,7 @@ class YoloDetect(Layer):
         classes_num_filtered = classes_num_filtered[argsort]
 
         # select the best pridect box with the ideal similar to nms
-        # seems to be not necessary in some conditions
+        # if there are 2 same probs, not likely, random pick one
         for i in range(len(boxes_filtered)):
             if probs_filtered[i] == 0 : continue
             for j in range(i+1,len(boxes_filtered)):
@@ -116,90 +116,94 @@ class YoloDetect(Layer):
 
         return result
 
-    def loss(truY, preY):
-        coord_1()+coord_2()+()+ noobj_()
+    def selective_iou(self, boxTensorTru1, boxTensorPre2):
+        '''
+        input B boxes Tensor
+        output_w matrix that represent the 1^obj_ij
+        '''
+        output_weight = np.zeros([S,S,B])
+        for i in range(S):
+            for j in range(S):
+                for b in range(B):
+                    pass
+        for candidate in range(B):
+            boxTensorPre2[:,:,candidate:]
         pass
 
+    def loss(self, truY, preY):
+        loss = pow((truY - preY),2)
+        # chose box to penalize
+        # adding penalty function
+        truClaProb ,truConfi, truBoxes = self.decode(truY)
+        claProb ,confi, boxes = self.decode(preY)
+        COORD = .5
+        NOOBJ = .1
+        iouT = self.iouTensor(truBoxes,boxes)
+        pass
+
+    def boxArea(self, box):
+        return box[:,:,:,2]*box[:,:,:,3]
+
+    def iouTensor(self, box1, box2):
+        S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
+        assert box1.shape == box2.shape == (S,S,B,4)
+        print box1[:,:,:,0].shape
+        minTop = min(box1[:,:,0,0]+0.5*box1[:,:,0,2],
+                     box2[:,:,0,0]+0.5*box2[:,:,0,2])
+
+        maxBot = max(box1[:,:,:,0]-0.5*box1[:,:,:,2],
+                     box2[:,:,:,0]-0.5*box2[:,:,:,2])
+
+        minR   = min(box1[:,:,:,1]+0.5*box2[:,:,:,3],
+                     box1[:,:,:,1]+0.5*box2[:,:,:,3])
+
+        maxL   = max(box1[:,:,:,1]-0.5*box2[:,:,:,3],
+                     box1[:,:,:,1]-0.5*box2[:,:,:,3])
+
+        # intersection
+        inters = (minTop-maxBot).clip(min=0)* (minR-maxL).clip(min=0)
+
+        # IOU
+        return inters/ (self.boxArea(box1)+ self.boxArea(box2)- inters)
 
     def iou(self,box1,box2):
-        tb = min(box1[0]+0.5*box1[2],box2[0]+0.5*box2[2])-max(box1[0]-0.5*box1[2],box2[0]-0.5*box2[2])
-        lr = min(box1[1]+0.5*box1[3],box2[1]+0.5*box2[3])-max(box1[1]-0.5*box1[3],box2[1]-0.5*box2[3])
+        tb = min(box1[0]+0.5*box1[2],
+                 box2[0]+0.5*box2[2])-\
+             max(box1[0]-0.5*box1[2],
+                 box2[0]-0.5*box2[2])
+        lr = min(box1[1]+0.5*box1[3],
+                 box2[1]+0.5*box2[3])-\
+             max(box1[1]-0.5*box1[3],
+                 box2[1]-0.5*box2[3])
         if tb < 0 or lr < 0 : intersection = 0
         else : intersection =  tb*lr
-        return intersection / (box1[2]*box1[3] + box2[2]*box2[3] - intersection)
+        return intersection/ (box1[2]*box1[3] + box2[2]*box2[3] -intersection)
 
 
 if __name__ =='__main__':
     detector2 = YoloDetect(S=4, B=3)
-    detector = YoloDetect()
-    for cX,cY in [(50,50),(50,150),(10,245),(440,440)]:
-        print ('=======')
-        print (cX,cY)
+    # a = detector.encode(3, 440, 440, 112, 12)
+    # print a[1000:]
+    # print detector.decodeT(a)
+    # print detector.interpret(a)
+    for cX,cY in [(50,50),(440,440)]:
 
+        detector = YoloDetect()
         a = detector.encode(3, cX, cY, 112, 12)
-        b = detector2.encode(3, cX,cY,112,13) 
+        b = detector.encode(3, 52, 34,112,12)
+        #b = detector2.encode(3, cX,cY,112,13)#
 
-        print detector.decode(a)
-        #print detector.interpret_output(a)
-        
-        print ('====')
-        print detector2.decode(b)
+        #print detector.interpret(a)
+        _,_,box1 = detector.decodeT(a)
+        _,_,box2 = detector.decodeT(b)
+        print detector.iouTensor(box1,box2)
 
+#        #print detector.interpret_output(a)#
 
-    #assert b == [3,115,242, 100/448, 120/448]
-
-
-
-
-# https://github.com/sunshineatnoon/Darknet.keras/blob/master/RunTinyYOLO.py
-#
-
-
-def do_nms_sort(boxes,total,classes=20,thresh=0.5):
-    for k in range(classes):
-        for box in boxes:
-            box.class_num = k
-        sorted_boxes = sorted(boxes,cmp=prob_compare)
-        for i in range(total):
-            if(sorted_boxes[i].probs[k] == 0):
-                continue
-            boxa = sorted_boxes[i]
-            for j in range(i+1,total):
-                boxb = sorted_boxes[j]
-                if(boxb.probs[k] != 0 and box_iou(boxa,boxb) > thresh):
-                    boxb.probs[k] = 0
-                    sorted_boxes[j] = boxb
-    return sorted_boxes
-
-def overlap(x1,w1,x2,w2):
-    l1 = x1 - w1/2;
-    l2 = x2 - w2/2;
-    if(l1 > l2):
-        left = l1
-    else:
-        left = l2
-    r1 = x1 + w1/2;
-    r2 = x2 + w2/2;
-    if(r1 < r2):
-        right = r1
-    else:
-        right = r2
-    return right - left;
-
-def box_intersection(a, b):
-    w = overlap(a.x, a.w, b.x, b.w);
-    h = overlap(a.y, a.h, b.y, b.h);
-    if(w < 0 or h < 0):
-         return 0;
-    area = w*h;
-    return area;
-
-def box_union(a, b):
-    i = box_intersection(a, b);
-    u = a.w*a.h + b.w*b.h - i;
-    return u;
-
-def box_iou(a, b):
-    return box_intersection(a, b)/box_union(a, b);
+#        print ('====')
+#        print detector2.interpret(b)
+#    print ('==H======H==')
+#    print a[1000:]
+    #print detector.decodeT(a)
 
 
