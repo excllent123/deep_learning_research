@@ -1,7 +1,7 @@
 
 from __future__ import division
 import numpy as np
-#from keras.engine import Layer
+from keras.engine import Layer
 # =============================================================================
 # encode : (Ground Truth Box | Image ) -> Ground Truth Y
 # decode : Predict Tensor Y ->
@@ -10,14 +10,13 @@ import numpy as np
 # =============================================================================
 
 
-class YoloDetect(object):
-    def __init__(self, numClass=20, rawImgW=448, rawImgH=448, S=7, B=2, thred=0.2):
+class YoloDetect(Layer):
+    def __init__(self, numCla=20, rImgW=448, rImgH=448, S=7, B=2):
         self.S = S
         self.B = B
-        self.C = numClass
-        self.W = rawImgW
-        self.H = rawImgH
-        self.threshold = thred
+        self.C = numCla
+        self.W = rImgW
+        self.H = rImgH
         self.iou_threshold=0.5
         self.classMap  =  ["aeroplane", "bicycle", "bird", "boat",
         "bottle", "bus", "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train","tvmonitor"]
@@ -73,6 +72,8 @@ class YoloDetect(object):
 
         return classProb, confidence, boxes        
 
+    def decode(self, prediction, threshold):
+        pass
 
     def interpret(self, prediction,threshold=0.2 ,only_objectness=0):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
@@ -100,7 +101,7 @@ class YoloDetect(object):
                 eProbs[:,:,i,j]=np.multiply(classProb[:,:,j],confidence[:,:,i])
 
         # Filter
-        filter_mat_probs = np.array(eProbs >= self.threshold,dtype='bool')
+        filter_mat_probs = np.array(eProbs >= threshold,dtype='bool')
         filter_mat_boxes = np.nonzero(filter_mat_probs)
 
         boxes_filtered = boxes[filter_mat_boxes[0],filter_mat_boxes[1],filter_mat_boxes[2]]
@@ -131,7 +132,7 @@ class YoloDetect(object):
 
         return result
 
-    def yolo_loss(self, truY, preY, COORD=5. , NOOBJ=.5 , loss=0):
+    def loss(self, truY, preY, COORD=5. , NOOBJ=.5 , loss_=0):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
 
         truCP ,truConf, truB = self.traDim(truY, mode=2)
@@ -150,11 +151,11 @@ class YoloDetect(object):
         objMask  = np.array([ max(i) for i in truCP])
         nobjMask = 1 - np.array([ max(i) for i in truCP])
 
-        loss += sum(pow( (truB-preB).sum(axis=1)    * objMask , 2)) * COORD 
-        loss += sum(pow( (truConf- preConf)         * objMask , 2))
-        loss += sum(pow( (truConf- preConf)         * nobjMask, 2)) * NOOBJ
-        loss += sum(pow( (truCP- preCP).sum(axis=1) * objMask , 2))
-        return loss
+        loss_ += sum(pow( (truB-preB).sum(axis=1)    * objMask , 2)) * COORD 
+        loss_ += sum(pow( (truConf- preConf)         * objMask , 2))
+        loss_ += sum(pow( (truConf- preConf)         * nobjMask, 2)) * NOOBJ
+        loss_ += sum(pow( (truCP- preCP).sum(axis=1) * objMask , 2))
+        return loss_
 
     def boxArea(self, box):
         return box[:,:,2]*box[:,:,3]
@@ -215,7 +216,7 @@ if __name__ =='__main__':
     #print detector.iouTensor(box1,box2)
 
     # TEST 
-    print detector.yolo_loss(a,b)
+    print detector.loss(a,b)
 
     #np.random.randint(1,3,[7,7,2,4])
 
