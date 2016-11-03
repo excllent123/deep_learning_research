@@ -1,13 +1,13 @@
 ### Basic Information
 - Authors : Kent Chiu (Jin-Chun)
-- Kickoff : 2016-09-05
-- This repo is just some collections and part of script for testing the flavor of models.
+- Tuning a deep learning model is sometimes time consuming especially you are working on a project that with a keeping changing dataset... 
+- This project is under construction and trying to figure out a way to fast retrival the relative model structure, meta-data and weight with corresponding data source version.
 
 ### Dependence
-- Anaconda - ENV.
 - Theano/Tensorflow
 - Keras
 - Opencv
+- Dlib
 
 ### Project Structure
 - hub : the place to store the model, conf, log.
