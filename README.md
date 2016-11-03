@@ -1,7 +1,8 @@
 ### Basic Information
 - Authors : Kent Chiu (Jin-Chun)
 - Tuning a deep learning model is sometimes time consuming especially you are working on a project that with a keeping changing dataset... 
-- This project is under construction and trying to figure out a way to fast retrival the relative model structure, meta-data and weight with corresponding data source version.
+- This project is trying to figure out a way to fast retrival the relative model structure, meta-data and weight with corresponding data source version to help new-algorithms developing. 
+- This project is under construction 
 
 ### Dependence
 - Theano/Tensorflow
