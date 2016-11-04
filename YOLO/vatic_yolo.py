@@ -85,8 +85,8 @@ def gen_yolo(vid, df, label):
         df_tmp = df_tmp[['xmin','ymin','xmax','ymax']]
         for i_list in df_tmp.values:
             startX, startY, endX, endY = map(int,i_list)
-            cX, cY = (startX+endX)/2, (startY+endY)/2
-            yield frame
+            img = frame[startY:endY, startX:endX,:]
+        yield frame, 
 
 #==============================================================================
 

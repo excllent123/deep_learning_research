@@ -187,6 +187,61 @@ class YoloDetect(Layer):
         else : intersection =  tb*lr
         return intersection/ (box1[2]*box1[3] + box2[2]*box2[3] -intersection)
 
+    def build(self):
+        S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
+        model = Sequential()
+        model.add(ZeroPadding2D((1,1),input_shape=(3,W,H)))
+
+        model.add(Convolution2D(64, 7, 7, border_mode='same', activation='relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=2))
+
+        model.add(Convolution2D(192, 3, 3, border_mode='same', activation='relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=2))
+
+
+        model.add(Convolution2D(128, 1, 1, border_mode='same', activation='relu'))
+        model.add(Convolution2D(256, 3, 3, border_mode='same', activation='relu'))
+        model.add(Convolution2D(256, 1, 1, border_mode='same', activation='relu'))
+        model.add(Convolution2D(512, 3, 3, border_mode='same', activation='relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=2))   
+
+
+        model.add(Convolution2D(256, 1, 1, border_mode='same', activation='relu'))
+        model.add(Convolution2D(512, 3, 3, border_mode='same', activation='relu'))
+        model.add(Convolution2D(256, 1, 1, border_mode='same', activation='relu'))
+        model.add(Convolution2D(512, 3, 3, border_mode='same', activation='relu'))
+        model.add(Convolution2D(256, 1, 1, border_mode='same', activation='relu'))
+        model.add(Convolution2D(512, 3, 3, border_mode='same', activation='relu'))
+        model.add(Convolution2D(256, 1, 1, border_mode='same', activation='relu'))
+        model.add(Convolution2D(512, 3, 3, border_mode='same', activation='relu'))
+
+        model.add(Convolution2D(512, 1, 1, border_mode='same', activation='relu'))
+        model.add(Convolution2D(1024, 3, 3, border_mode='same', activation='relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=2))  
+
+        model.add(Convolution2D(512, 1, 1, border_mode='same', activation='relu'))
+        model.add(Convolution2D(1024, 3, 3, border_mode='same', activation='relu'))
+        model.add(Convolution2D(512, 1, 1, border_mode='same', activation='relu'))
+        model.add(Convolution2D(1024, 3, 3, border_mode='same', activation='relu'))
+
+        model.add(Convolution2D(1024, 3, 3, border_mode='same', activation='relu'))
+        model.add(Convolution2D(1024, 3, 3, border_mode='same', activation='relu', strides=2))
+
+        model.add(Convolution2D(1024, 3, 3, border_mode='same', activation='relu'))
+        model.add(Convolution2D(1024, 3, 3, border_mode='same', activation='relu'))
+
+        model.add(Flatten())
+        model.add(Dense(4096, activation='relu'))
+  
+        model.add(Dense(S*S*(5*B+C), activation='linear'))
+        print (model.summary())
+        return model
+
+    def train(self, ):
+        model = self.build()
+        loss = self.loss
+        model.compile(optimizer=RMSprop(lr=0.001), loss=loss, metrics=['accuracy'])
+
 
 if __name__ =='__main__':
     detector = YoloDetect()
