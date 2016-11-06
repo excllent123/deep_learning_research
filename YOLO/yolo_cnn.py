@@ -108,7 +108,7 @@ class YoloNetwork(object):
         ###
         model.add(Convolution2D(1024, 3, 3,border_mode='same'))
         model.add(LeakyReLU(alpha=0.1))
-        model.summary()
+        
         model.add(Convolution2D(1024, 3, 3, border_mode='same',
             subsample=(2,2)))
         model.add(LeakyReLU(alpha=0.1))
@@ -128,6 +128,8 @@ class YoloNetwork(object):
         model.add(Dropout(0.5))  
 
         model.add(Dense(S*S*(5*B+C), activation='linear'))
+
+        model.summary()
         return model
 
     def yolo_tiny(self):
@@ -145,7 +147,7 @@ class YoloNetwork(object):
         model.add(LeakyReLU(alpha=0.1))
         model.add(MaxPooling2D(pool_size=(2, 2),border_mode='same' , 
             strides=(2,2)))
-
+        
         model.add(Convolution2D(64,3,3,border_mode='same'))
         model.add(LeakyReLU(alpha=0.1))
         model.add(MaxPooling2D(pool_size=(2, 2),border_mode='same' , 
@@ -175,11 +177,15 @@ class YoloNetwork(object):
         model.add(Convolution2D(1024,3,3,border_mode='same'))
         model.add(LeakyReLU(alpha=0.1))
 
+        model.add(Flatten())
         model.add(Dense(256, activation='linear'))
         model.add(Dense(4096))
         model.add(LeakyReLU(alpha=0.1))
         model.add(Dropout(0.5))
         model.add(Dense(1470, activation='linear'))
+
+        model.summary()
+        return model
 
     def train(self, ):
         model = self.yolo_small()
@@ -226,7 +232,8 @@ def SimpleNet(yoloNet):
     return model
 
 yolooo = YoloNetwork()
-model = yolooo.yolo_small()
+#model = yolooo.yolo_small()
+model2 = yolooo.yolo_tiny()
 
 
 
