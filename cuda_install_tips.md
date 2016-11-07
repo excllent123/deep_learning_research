@@ -25,17 +25,15 @@ Then
 
 ### Step 3 : Do the Nvidia-Driver and CUDA installation in TTY1 (Ctrl + Alt + F1).
 
-- sudo service lightdm stop (during the installation, we have to stop the X-server and related services.)
+During installation, we have to stop the X-server and related services.
+- sudo service lightdm stop
+- sudo bash cuda-8.0.44_linux.run --no-opengl-libs **(the flag is critial)**
+- Accept all setting except the Xserver configuration. **NO for Xserver configurations.**
+- (OPTIONAL) sudo modprobe nvidiah
 
-- sudo bash cuda-8.0.44_linux.run --no-opengl-libs ( the flag is critial )
-
-- During the install: Accept all setting except the Xserver configuration. (enter **NO** for Xserver configurations)
-
-- sudo modprobe nvidiah (check the device node )
-
-- Set Environment path variables in .bashrc and then source it:
- - $ export PATH=/usr/local/cuda-8.0/bin:$PATH
- - $ export LD_LIBRARY_PATH=/usr/local/cuda-8.0/lib64:$LD_LIBRARY_PATH
+Set Environment path variables in .bashrc and then source it:
+- $ export PATH=/usr/local/cuda-8.0/bin:$PATH
+- $ export LD_LIBRARY_PATH=/usr/local/cuda-8.0/lib64:$LD_LIBRARY_PATH
 
 ### Step 4 : Installation Cudnn
 
