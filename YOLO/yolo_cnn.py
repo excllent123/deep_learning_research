@@ -2,8 +2,6 @@ import tensorflow as tf
 import numpy as np
 
 
-
-
  # import the necessary packages
 
 from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
