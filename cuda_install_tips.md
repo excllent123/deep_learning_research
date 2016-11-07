@@ -27,7 +27,7 @@ Then
 
 ### Step 3 : Do the Nvidia-Driver and CUDA installation in TTY1 (Ctrl + Alt + F1).
 
-During installation, we have to stop the X-server and related services.
+After reboot, we have to stop any service that is realted to X-server.
 - sudo service lightdm stop
 - sudo bash cuda-8.0.44_linux.run --no-opengl-libs **(the flag is critial)**
 - Accept all setting except the Xserver configuration. **NO for Xserver configurations.**
@@ -55,5 +55,4 @@ Clean and Create right link for cudnn .so, Notice following .so versions are act
 
 ### Finally
 
-Once we finished the installation, we could re-opend lightdm, and do the rest of setting such Torch/Tensorflow/Theano ... etc
-Good Luck !
+Once we finished the installation, we could re-opend **lightdm**, or simpliy reboot, and then do the rest of things such as install Torch/Tensorflow/Mxnet/OpenCV/....etc. Good Luck!
