@@ -1,0 +1,308 @@
+cmake -D WITH_CUDA=ON -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local \
+ -D PYTHON3_PACKAGES_PATH=~/anaconda3/lib/python3.5/site-packages \
+ -D PYTHON3_LIBRARY=~/anaconda3/lib/libpython3.5.dylib \
+ -D PYTHON3_INCLUDE_DIR=~/anaconda3/include/python3.5 \
+ -D INSTALL_C_EXAMPLES=ON -D INSTALL_PYTHON_EXAMPLES=ON \
+ -D BUILD_EXAMPLES=ON \
+ -D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib/modules ..
+
+
+
+
+ cmake -DBUILD_TIFF=ON -DBUILD_opencv_java=OFF -DWITH_CUDA=OFF -DENABLE_AVX=ON -DWITH_OPENGL=ON -DWITH_OPENCL=ON -DWITH_IPP=ON -DWITH_TBB=ON -DWITH_EIGEN=ON -DWITH_V4L=ON -DWITH_VTK=OFF -DBUILD_TESTS=OFF -DBUILD_PERF_TESTS=OFF -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=$(python3 -c "import sys; print(sys.prefix)") -DPYTHON3_EXECUTABLE=$(which python3) -DPYTHON3_INCLUDE_DIR=$(python3 -c "from distutils.sysconfig import get_python_inc; print(get_python_inc())") -DPYTHON3_PACKAGES_PATH=$(python3 -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())") ..
+
+
+
+ Go to the directory where you have the CUDA driver, and run
+
+a. chmod a+x .
+
+b. sudo service lightdm stop
+
+c. sudo bash cuda-7.5.18_linux.run --no-opengl-libs
+During the install –
+
+a. Accept EULA conditions
+
+b. Say YES to installing the NVIDIA driver
+
+c. Say YES to installing CUDA Toolkit + Driver
+
+d. Say YES to installing CUDA Samples
+
+e. Say NO rebuilding any Xserver configurations with Nvidia
+Check if /dev/nvidia* files exist. If they don't, do the following –
+
+a. sudo modprobe nvidia
+Set Environment path variables –
+
+a. export PATH=/usr/local/cuda-7.5/bin:$PATH
+
+b. export LD_LIBRARY_PATH=/usr/local/cuda-7.5/lib64:$LD_LIBRARY_PATH
+Verify the driver version –
+
+a. cat /proc/driver/nvidia/version
+Check CUDA driver version
+
+a. nvcc –V
+Switch the lightdm back on again
+
+a. sudo service lightdm start
+Ctrl+Alt+F7 and login to the system through GUI
+Create CUDA Samples –
+
+a. Go to NVIDIA_CUDA-7.5_Samples folder through terminal
+
+b. make
+
+c. cd bin/x86_64/linux/release/
+
+d. ./deviceQuery
+
+e. ./bandwidthTest
+
+f. Both tests should ultimately output a 'PASS' in terminal
+Reboot the system
+
+
+shamangary's Blog
+RSS
+Search
+BlogArchivesAbout Me
+安裝 Installation of Torch7, Cuda, Cudnn, Nvidia Driver with GTX1070
+JULY 10, 2016 | 0 COMMENTS
+GPU: Nvidia GTX1070 Platform: Ubuntu 14.04 LTS
+
+經過了兩天的掙扎，終於把這一切都搞定了。 從頭開始條列問題
+
+1. Nvidia GTX1070使用hdmi線的話，ubuntu14.04會有頻率out of range（超出工作範圍）的問題
+
+在Grub模式（選擇要進入體驗ubuntu，安裝ubuntu，或windows的黑屏畫面），如果直接按enter選擇安裝ubuntu，你會連安裝都無法，因為直接黑畫面，頻率好像只有30幾螢幕不支援，這時候你想安裝什麼driver都無法，
+
+(a)你同時有windows和ubuntu：解決方法是不要按enter，先上下選擇ubuntu（反白為選擇而不是按enter）並按下e，會進入編輯模式，
+(b)你只有ubuntu：開機之後就按e按到進入編輯模式
+
+然後找到"linux......quiet splash......"這行，並改寫為：
+
+quiet splash nomodeset
+，然後按下F10啟動，這時候你就進的去了，
+
+但是要注意這是暫時的，每次重開不可能都這樣作，所以我們要改寫grub
+
+sudo nano /etc/default/grub
+修改其中的一行就好，改成下面這樣
+
+GRUBCMDLINELINUXDEFAULT="quiet splash nomodeset" 
+儲存後好像要讓他重新讀取
+
+sudo update-grub
+如此一來每次就不用再按一次e編輯了，第一個問題解決
+
+2. 解析度低，並且無法從cuda找到對應的GPU裝置：安裝對應的Driver驅動程式
+
+儘管已經可以用ubuntu了，你會發現無法調整解析度，是因為ubuntu並沒有GTX1070的Driver，上網查的很多方法都無法，特別注意，不要想直接用apt-get來安裝，因為最新的驅動程式似乎無法搜尋到，你可能還會裝到比較舊的版本，造成許多問題，
+
+是故我們到官網去下載run檔 http://www.nvidia.com.tw/Download/index.aspx?lang=tw 下載對應你GPU的版本，不要妄想用別的，最後會壞掉，網路上會推薦你用什麼bumblebee殺小的，至少我用1070他無法作用就是，乖乖下載
+
+舉例來說GTX1070最後會下載到的檔案為：NVIDIA-Linux-x86_64-367.27.runi
+
+我們來安裝驅動程式，這裡有個很重要的地方，就是你無法直接在一般界面上安裝，按下ctrl+alt+F1可以切換到純命令界面，接著我們必須把GUI關掉
+
+sudo service lightdm stop
+接著cd到你放run file的地方
+
+sudo chmod a+x NVIDIA-Linux-x8664-367.27.run
+sudo ./NVIDIA-Linux-x8664-367.27.run
+然後一直選yes,『但是！！！注意在最後有個X configuration的東西要選no！！！！』 continue直到安裝結束就好 接著你可以用sudo reboot重新開機，或是可以alt+右鍵一直按直到回到圖形界面，或是 sudo service lightdm restart也可以回到圖形界面，你就會發現解析度變好了，不然解析度差真的很痛苦。
+
+2016/9/5更新
+如何確定有安裝好？（一定要確認這點！！！）
+
+nvidia-smi
+由於之後有新的驅動程式367.44，但是他本身好像是有問題的，所以我之後重裝還是用367.27，版本也是很重要的，
+如果你不小心裝了367.44，想要移除他，請使用以下指令
+
+sudo ./NVIDIA-Linux-x8664-367.44.run --uninstall
+安裝cuda時，記得不要一起安裝opengl（不過我後來只要安裝好nvidia driver沒有特別指定這個好像也沒什麼問題），不然可能會導致login loop，我最近一次成功的順序是先安裝cuda再安裝nvidia drivier(在另外一台電腦上直接安裝nvidia driver也是完全沒問題，不過記得X configuration那項一定要選no)，安裝cuda要參考下面的連結
+
+重要參考：
+https://devtalk.nvidia.com/default/topic/878117/-solved-titan-x-for-cuda-7-5-login-loop-error-ubuntu-14-04-/
+http://askubuntu.com/questions/762254/why-do-i-get-required-key-not-available-when-install-3rd-party-kernel-modules
+
+如果你不小心裝了連自己都不知道是啥的版本，可以用下面方式刪除（通常網路上會建議你用ppa安裝，但是像367.44被安裝後是不能用的，這時候就需要下面這行）
+
+sudo apt-get remove --purge nvidia-*
+3. Cuda 7.5 or Cuda 8.0 ?
+
+對GTX1070來說，千萬不要用7.5，直接用8.0，雖然網路很多人都說他們可以用，但是7.5我用了兩天都用不好，灰心下8.0用了兩三個小時就一切搞定了
+
+（如果你用了7.5的話，你會發現跟driver超級不合，然後luarocks install cutorch的東西也會報錯）
+
+2016/9/6更新 GTX780我用cuda 7.5是沒什麼問題的
+
+https://developer.nvidia.com/cuda-toolkit 下載8.0並對應你所用的系統，記得下載run file好像才能選擇要否裝驅動，我們這裡是ubuntu14.04 
+我最後下載到的檔案名為：cuda_8.0.27_linux.run 可以使用以下命令安裝
+
+sudo chmod a+x ./cuda_8.0.27_linux.run
+sudo ./cuda_8.0.27_linux.run 
+他會出現一堆字，就是合約要你看的，我們直接ctrl+C他會問你是否同意，就按照同意的概念去選之後的選項， 
+特別注意！！！！！！！ 不要安裝他的driver因為我們前一步已經安裝過了，記得那項千萬要選NO
+
+安裝好了後編輯一下來源
+
+sudo nano ~/.bashrc
+在最後加上後面這幾行就行了
+
+export CUDA_HOME=/usr/local/cuda-8.0 
+export LD_LIBRARY_PATH=${CUDA_HOME}/lib64 
+ 
+PATH=${CUDA_HOME}/bin:${PATH} 
+export PATH
+可能再用一下source ~/.bashrc讓他讀一下什麼之類的
+
+4. 安裝Cudnn
+
+其實最重要的就是Cuda要選對，在GTX1070這個情況就是Cuda 8.0，Cudnn也是選對應8.0的即可
+
+https://developer.nvidia.com/cudnn
+去註冊並登入並下載對應你cuda的版本
+
+我下載的是
+cudnn-8.0-linux-x64-v5.0-ga.tgz
+解壓縮後是一個名為cuda的資料夾，裡面有include和lib64兩個folder，我們需要把他們放到該放的地方去
+假設我們把cuda資料夾放在Desktop上
+
+cd Desktop/cuda/lib64
+sudo cp ./* /usr/local/cuda/lib64/
+cd
+cd Desktop/cuda/include
+sudo cp cudnn.h /usr/local/cuda/include/
+更新他們的軟連結（注意其中的編號要依照你下載的版本而定）
+
+cd /usr/local/cuda/lib64/ 
+sudo rm -rf libcudnn.so libcudnn.so.5 
+sudo ln -s libcudnn.so.5.0.5 libcudnn.so.5 
+sudo ln -s libcudnn.so.5 libcudnn.so 
+2016/9/9更新
+有時候你安裝其他東西的時候會遇到說找不到lcufft這種感覺的東西，這時候也是軟連結的問題
+像是在安裝spectral-lib的時候就會遇到這個問題
+https://github.com/mbhenaff/spectral-lib
+打入下面東西就沒事囉
+
+sudo ln -s /usr/local/cuda/lib64/libcufft.so /usr/lib/libcufft.so
+luarocks install spectralnet-scm-1.rockspec
+5. 安裝Torch7
+
+如果前面都完成了，你就可以放心安裝torch7了
+
+# in a terminal, run the commands WITHOUT sudo
+git clone https://github.com/torch/distro.git ~/torch --recursive
+cd ~/torch; bash install-deps;
+./install.sh
+
+# On Linux with bash
+source ~/.bashrc
+
+# run luarocks WITHOUT sudo
+$ luarocks install image
+$ luarocks list
+Posted by shamangary July 10, 2016
+
+    
+Comments
+
+
+← 一起來雲端深度學習：Torch7(Caffe)+AWS EC2+bitfusion.io. A tutorial for cloud based deep learning without buying a GPU computer. Analysis of CNN Architecture. Using STN+PNNET, Residual Network as Examples. →
+Recent Posts
+About Me
+OpenFace Installation/Setup by Hand （安裝OpenFace）
+Analysis of CNN Architecture. Using STN+PNNET, Residual Network as Examples.
+安裝 Installation of Torch7, Cuda, Cudnn, Nvidia Driver with GTX1070
+一起來雲端深度學習：Torch7(Caffe)+AWS EC2+bitfusion.io. A tutorial for cloud based deep learning without buying a GPU computer.
+Categories
+paper  (1)
+deep-learning  (4)
+Copyright © 2013 - shamangary - Powered by Logdown and Octopress
+
+
+I reinstalled the OS and re-ran everything same as before adding the --no-opengl-libs flag. This is the critical part. I would like to add something else though! I did not install have to install the NVIDIA driver explicitly first. I ran the cuda.run file instead, and said yes to install the NVIDIA driver when it prompted me to. I feel like doing this in one straight run made everything way easier. Thanks for everything!
+
+Post of final script and solution
+
+0) Download your relevant CUDA.run file: mine was: cuda_7.0.28_linux.run
+Note, that once again this install is if you purely want to use your graphics card (Titan X) for GPU/CUDA purposes and not for rendering.
+
+Also run: $sudo apt-get install build-essential
+
+1) I start off with the regular GUI and Ubuntu working with no login problems.
+2) No need to create an xorg.conf file. If you have one, remove it (assuming you ahve a fresh OS install). $ sudo rm /etc/X11/xorg.conf 
+
+3) Create the /etc/modprobe.d/blacklist-nouveau.conf file with :
+blacklist nouveau
+option nouveau modeset=0
+
+Then $sudo update-initramfs -u
+
+4) Reboot computer. Nothing should have changed in loading up menu. You should be taken to the login screen. Once there type: Ctrl + Alt + F1, and login to your user.
+5) Go to the directory where you have the CUDA driver, and run
+$chmod a+x .
+7) Now, run $ sudo service lightdm stop
+The top line is a necessary step for installing the driver.
+8) I run the CUDA driver run file. *Notice that I explicitly don't want the OpenGL flags to be installed:
+$ sudo bash cuda-7.0.28_linux.run --no-opengl-libs
+
+9) During the install: 
+Accept EULA conditions
+Say YES to installing the NVIDIA driver
+SAY YES to installing CUDA Toolkit + Driver
+Say YES to installing CUDA Samples
+
+Say NO rebuilding any Xserver configurations with Nvidia.
+
+10) Installation should be complete. Now check if device nodes are present:
+Check if /dev/nvidia* files exist. If they don't, do :
+$ sudo modprobe nvidia
+
+11) Set Environment path variables:
+$ export PATH=/usr/local/cuda-7.0/bin:$PATH
+$ export LD_LIBRARY_PATH=/usr/local/cuda-7.0/lib64:$LD_LIBRARY_PATH
+
+*Change depending on your cuda version.
+
+12) Verify the driver version:
+$ cat /proc/driver/nvidia/version
+
+13) Check CUDA driver version:
+$ nvcc -V
+
+[Optional] At this point you can switch the lightdm back on again by doing:
+$ sudo service lightdm start. 
+
+You should be able to login to your session through the GUI without any problems or login-loops.
+
+14) Create CUDA Samples. Go to your NVIDIA_CUDA-7.5_Samples folder and type $make.
+
+15) Go to NVIDIA_CUDA-7.5_Samples/bin/x86_64/linux/release/ for the demos, and do the two standard checks:
+./deviceQuery
+to see your graphics card specs and
+./bandwidthTest
+to check if its operating correctly.
+
+Both tests should ultimately output a 'PASS' in your terminal.
+
+16) Reboot. Everything should be ok.
+#12
+Posted 09/17/2015 10:15 PM   
+ 
+fafhrd
+  
+old post but THANK YOU for posting these complete instructions.
+#13
+Posted 01/06/2016 11:04 AM   
+ 
+fsr
+  
+Thanks for this great solution, it is lifesaving!
+
+Here is a little correction for 3. part. (option-->options)
+options nouveau modeset=0
