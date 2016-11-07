@@ -16,12 +16,12 @@ To install CUDA is painful for most of people since most of data scientists or d
 ### Step 2 : depreciate nouveau since it will cause confiction with Nvidia-driver
 
 Create the /etc/modprobe.d/blacklist-nouveau.conf file with :
-blacklist nouveau
-options nouveau modeset=0
+ - blacklist nouveau
+ - options nouveau modeset=0
 
-Then $sudo update-initramfs -u
-
-Reboot computer to initialize this setting.
+Then 
+ - $sudo update-initramfs -u
+ - Reboot computer to initialize this setting.
 
 ### Step 3 : Do the Nvidia-Driver and CUDA installation in TTY1 (Ctrl + Alt + F1).
 
@@ -49,3 +49,8 @@ Reboot computer to initialize this setting.
 - sudo ln -s libcudnn.so.5.0.5 libcudnn.so.5 
 - sudo ln -s libcudnn.so.5 libcudnn.so 
 - OPTIONAL (sudo ln -s /usr/local/cuda/lib64/libcufft.so /usr/lib/libcufft.so) 
+
+### Finally
+
+Once we finished the installation, we could re-opend lightdm, and do the rest of setting such Torch/Tensorflow/Theano ... etc
+Good Luck !
