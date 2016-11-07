@@ -2,7 +2,7 @@
 
 ### Introduction 
 
-To install CUDA is painful for most of people since most of data scientists or deep learning researchers are not familiar with system-side knowledge, include me. Few monthes ago, I've successed install CUDA in WINDOWS system, however, for some reasons, the WINDOWS-based version is no longer to satisfited my need. I decided to switch my whole inframe-structure to Ubuntu 14.04 LTS. It took me 10 hours to sucessfully recover my base-environment, and the most painful step is to install CUDA. The main problem found after is the confliction of Multi-GPUs in my computer. In the following section, I am going to share the sucessful process step-by-step.
+To install CUDA is painful for most of people since most of data scientists or deep learning researchers are not familiar with system-side knowledge, include me. Few monthes ago, I've successed install CUDA in WINDOWS system, however, for some reasons, the WINDOWS-based version is no longer to satisfited my need. I decided to switch my whole inframe-structure to Ubuntu 14.04 LTS. It took me 10 hours to sucessfully recover all my base-environment,the most painful step is to install CUDA. Therefore, I decide to share my sucessful process step-by-step. Hope it will help some people : )
 
 
 ### Step 1 : Pre-installation just follow [officail guild](http://developer.download.nvidia.com/compute/cuda/8.0/secure/prod/docs/sidebar/CUDA_Installation_Guide_Linux.pdf?autho=1478535150_deefbbf1f764ec2a59a02727d0c95c05&file=CUDA_Installation_Guide_Linux.pdf)
