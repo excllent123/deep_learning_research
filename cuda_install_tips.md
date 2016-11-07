@@ -41,8 +41,10 @@ Then
 
 - Download : cudnn-8.0-linux-x64-v5.0-ga.tgz (depend on your version) and unzip it.
 - After unzip it, you will find a cuda folder with 2 subfolder lib64 and include
-- cd cuda/lib64 & sudo cp ./* /usr/local/cuda/lib64/ (Notice the first cuda is from cudnn and second is your from original)
-- cd cuda/include & sudo cp cudnn.h /usr/local/cuda/include/
+
+Copy the file from cudnn into the original-CUDA with the corresponding folder
+ - cd cuda/lib64 & sudo cp ./* /usr/local/cuda/lib64/ 
+ - cd cuda/include & sudo cp cudnn.h /usr/local/cuda/include/
  
 ### Step 5 : Clean and Create right link for cudnn .so
 
