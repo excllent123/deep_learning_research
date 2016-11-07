@@ -39,6 +39,7 @@ Then
 
 ### Step 4 : Installation Cudnn
 
+Download Cudnn with right version with your cuda and os-arch
 - Download : cudnn-8.0-linux-x64-v5.0-ga.tgz (depend on your version) and unzip it.
 - After unzip it, you will find a cuda folder with 2 subfolder lib64 and include
 
@@ -46,9 +47,7 @@ Copy the file from cudnn into the original-CUDA with the corresponding folder
  - cd cuda/lib64 & sudo cp ./* /usr/local/cuda/lib64/ 
  - cd cuda/include & sudo cp cudnn.h /usr/local/cuda/include/
  
-### Step 5 : Clean and Create right link for cudnn .so
-
-Notice following .so versions are actually depend on your version : 
+Clean and Create right link for cudnn .so, Notice following .so versions are actually depend on your version : 
 - cd /usr/local/cuda/lib64/ & sudo rm -rf libcudnn.so libcudnn.so.5 
 - sudo ln -s libcudnn.so.5.0.5 libcudnn.so.5 
 - sudo ln -s libcudnn.so.5 libcudnn.so 
