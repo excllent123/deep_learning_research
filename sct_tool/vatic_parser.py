@@ -76,17 +76,23 @@ def gen_pos(vid, df, label):
             img = frame[startY:endY, startX:endX,:]
         yield img
 
-def gen_yolo(vid, df, label):
-    for frameID in range(vid.get_length()):
-        frame = vid.get_data(frameID)
-        # get the meta data
-        df_tmp = df[ df['frameid']==str(frameID) ]
-        df_tmp = df_tmp[ df_tmp['label_name']==label ]
-        df_tmp = df_tmp[['xmin','ymin','xmax','ymax']]
-        for i_list in df_tmp.values:
-            startX, startY, endX, endY = map(int,i_list)
-            cX, cY = (startX+endX)/2, (startY+endY)/2
-            yield frame
+def gen_yolo(vid, df, yolo_conf, frameID):
+    '''
+    df : vatic data + vid pbjects
+    return encoded tensor
+    missing : data augmentation
+    '''
+
+    frame = vid.get_data(frameID)
+    # get the meta data
+    df_tmp = df[ df['frameid']==str(frameID) ]
+    for label in gen_lables(frame)
+    df_tmp = df_tmp[ df_tmp['label_name']==label ]
+    df_tmp = df_tmp[['xmin','ymin','xmax','ymax']]
+    for i_list in df_tmp.values:
+        startX, startY, endX, endY = map(int,i_list)
+        cX, cY = (startX+endX)/2, (startY+endY)/2
+        yield frame
 
 #==============================================================================
 

@@ -18,12 +18,45 @@ class YoloDetect(Layer):
         self.W = rImgW
         self.H = rImgH
         self.iou_threshold=0.5
-        self.classMap  =  ["aeroplane", "bicycle", "bird", "boat",
-        "bottle", "bus", "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train","tvmonitor"]
+        self.classMap  =  ["aeroplane", "bicycle", "bird", "boat", "bottle", 
+                           "bus", "car", "cat", "chair", "cow", "diningtable",
+                           "dog", "horse", "motorbike", "person", "pottedplant",
+                           "sheep", "sofa", "train","tvmonitor"]
 
     def set_class_map(self, mappingList):
         assert type(mappingList)==list ; assert len(mappingList) == self.C
         self.classMap=mappingList
+
+    def encode_vatic(self ,df):
+        '''
+        input  : vatic df
+        output : X(Frame) Y(Encoded Tensor)
+        '''
+        S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
+        assert int(classid) <= int(C-1)
+
+        # init
+        classProb  = np.zeros([S, S, C   ])
+        confidence = np.zeros([S, S, B   ])
+        boxes      = np.zeros([S, S, B, 4])
+
+        for classid, cX, cY, boxW, boxH in gen_vatic(frameid):
+
+            gridX, gridY = W/S, H/S
+            tarIdX, tarIdY = int(cX/gridX) , int(cY/gridY)    
+
+            # assign the true value
+            classProb[tarIdX, tarIdY, classid] = 1.0
+            confidence[tarIdX, tarIdY, :      ] = 1.0    
+
+            # x,y,w,h
+            boxes[tarIdX, tarIdY, :, 0] = (cX/gridX) - int(cX/gridX)
+            boxes[tarIdX, tarIdY, :, 1] = (cY/gridY) - int(cY/gridY)
+            boxes[tarIdX, tarIdY, :, 2] = np.sqrt(boxW/W)
+            boxes[tarIdX, tarIdY, :, 3] = np.sqrt(boxH/H)
+
+        yield np.concatenate([classProb.flatten(),confidence.flatten(),
+                               boxes.flatten()])
 
     def encode(self, classid, cX, cY, boxW, boxH):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
@@ -34,6 +67,7 @@ class YoloDetect(Layer):
         confidence = np.zeros([S, S, B   ])
         boxes      = np.zeros([S, S, B, 4])
 
+        # Start to assing the true value
         # target the center grid
         gridX, gridY = W/S, H/S
         tarIdX, tarIdY = int(cX/gridX) , int(cY/gridY)
@@ -48,7 +82,7 @@ class YoloDetect(Layer):
         boxes[tarIdX, tarIdY, :, 2] = np.sqrt(boxW/W)
         boxes[tarIdX, tarIdY, :, 3] = np.sqrt(boxH/H)
 
-        return np.concatenate([classProb.flatten(),confidence.flatten(),
+        yield np.concatenate([classProb.flatten(),confidence.flatten(),
                                boxes.flatten()])
 
     def traDim(self, pred, mode=3):
@@ -186,76 +220,6 @@ class YoloDetect(Layer):
         if tb < 0 or lr < 0 : intersection = 0
         else : intersection =  tb*lr
         return intersection/ (box1[2]*box1[3] + box2[2]*box2[3] -intersection)
-
-    def build(self):
-        S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
-        model = Sequential()
-        model.add(ZeroPadding2D((1,1),input_shape=(3,W,H)))
-
-        model.add(Convolution2D(64, 7, 7, activation='relu'))
-        model.add(MaxPooling2D(pool_size=(2, 2), strides=2))
-
-        model.add(Convolution2D(192, 3, 3, activation='relu'))
-        model.add(MaxPooling2D(pool_size=(2, 2), strides=2))
-
-
-        model.add(Convolution2D(128, 1, 1))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Convolution2D(256, 3, 3))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Convolution2D(256, 1, 1))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Convolution2D(512, 3, 3))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(MaxPooling2D(pool_size=(2, 2), strides=2))   
-
-
-        model.add(Convolution2D(256, 1, 1))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Convolution2D(512, 3, 3))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Convolution2D(256, 1, 1))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Convolution2D(512, 3, 3))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Convolution2D(256, 1, 1))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Convolution2D(512, 3, 3))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Convolution2D(256, 1, 1))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Convolution2D(512, 3, 3))
-        model.add(LeakyReLU(alpha=0.1))
-
-        model.add(Convolution2D(512, 1, 1))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Convolution2D(1024, 3, 3))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(MaxPooling2D(pool_size=(2, 2), strides=2))  
-
-        model.add(Convolution2D(512, 1, 1))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Convolution2D(1024, 3, 3))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Convolution2D(512, 1, 1))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Convolution2D(1024, 3, 3))
-        model.add(LeakyReLU(alpha=0.1))
-
-        
-
-        model.add(Convolution2D(1024, 3, 3, activation='relu'))
-        model.add(Convolution2D(1024, 3, 3, activation='relu', strides=2))
-
-        model.add(Convolution2D(1024, 3, 3, activation='relu'))
-        model.add(Convolution2D(1024, 3, 3, activation='relu'))
-
-        model.add(Flatten())
-        model.add(Dense(4096, activation='relu'))
-  
-        model.add(Dense(S*S*(5*B+C), activation='linear'))
-        print (model.summary())
-        return model
 
     def train(self, ):
         model = self.build()
