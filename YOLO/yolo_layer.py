@@ -10,7 +10,7 @@ from keras.engine import Layer
 # =============================================================================
 
 
-class YoloDetect(Layer):
+class YoloDetector(Layer):
     def __init__(self, numCla=20, rImgW=448, rImgH=448, S=7, B=2):
         self.S = S
         self.B = B
@@ -27,21 +27,20 @@ class YoloDetect(Layer):
         assert type(mappingList)==list ; assert len(mappingList) == self.C
         self.classMap=mappingList
 
-    def encode_vatic(self ,df):
+    def encode(self, annotations):
+        ''' annotations : nested list contained
         '''
-        input  : vatic df
-        output : X(Frame) Y(Encoded Tensor)
-        '''
-        S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
-        assert int(classid) <= int(C-1)
+        S, B, C, W, H = self.S, self.B, self.C, self.W, self.
 
         # init
         classProb  = np.zeros([S, S, C   ])
         confidence = np.zeros([S, S, B   ])
         boxes      = np.zeros([S, S, B, 4])
 
-        for classid, cX, cY, boxW, boxH in gen_vatic(frameid):
+        for classid, cX, cY, boxW, boxH in annotations:
+            assert int(classid) <= int(C-1)
 
+            # Target the center grid
             gridX, gridY = W/S, H/S
             tarIdX, tarIdY = int(cX/gridX) , int(cY/gridY)    
 
@@ -54,33 +53,6 @@ class YoloDetect(Layer):
             boxes[tarIdX, tarIdY, :, 1] = (cY/gridY) - int(cY/gridY)
             boxes[tarIdX, tarIdY, :, 2] = np.sqrt(boxW/W)
             boxes[tarIdX, tarIdY, :, 3] = np.sqrt(boxH/H)
-
-        yield np.concatenate([classProb.flatten(),confidence.flatten(),
-                               boxes.flatten()])
-
-    def encode(self, classid, cX, cY, boxW, boxH):
-        S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
-        assert int(classid) <= int(C-1)
-
-        # init
-        classProb  = np.zeros([S, S, C   ])
-        confidence = np.zeros([S, S, B   ])
-        boxes      = np.zeros([S, S, B, 4])
-
-        # Start to assing the true value
-        # target the center grid
-        gridX, gridY = W/S, H/S
-        tarIdX, tarIdY = int(cX/gridX) , int(cY/gridY)
-
-        # assign the true value
-        classProb[tarIdX, tarIdY, classid] = 1.0
-        confidence[tarIdX, tarIdY, :      ] = 1.0
-
-        # x,y,w,h
-        boxes[tarIdX, tarIdY, :, 0] = (cX/gridX) - int(cX/gridX)
-        boxes[tarIdX, tarIdY, :, 1] = (cY/gridY) - int(cY/gridY)
-        boxes[tarIdX, tarIdY, :, 2] = np.sqrt(boxW/W)
-        boxes[tarIdX, tarIdY, :, 3] = np.sqrt(boxH/H)
 
         yield np.concatenate([classProb.flatten(),confidence.flatten(),
                                boxes.flatten()])
@@ -228,7 +200,7 @@ class YoloDetect(Layer):
 
 
 if __name__ =='__main__':
-    detector = YoloDetect()
+    detector = YoloDetector()
     a = detector.encode(3, 22, 12, 123, 123)
     b = detector.encode(4, 22, 12, 123, 123)
     c = detector.encode(3, 22, 12, 123, 123)

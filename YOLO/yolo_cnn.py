@@ -18,7 +18,6 @@ from yolo_layer import YoloDetect
 # - yolo-tiny :
 # =============================================================================
 
-
 class YoloNetwork(object):
     def __init__(self, numCla=20, rImgW=448, rImgH=448, S=7, B=2):
         self.S = S
@@ -199,8 +198,8 @@ class YoloNetwork(object):
 
 
 yolooo = YoloNetwork()
-#model = yolooo.yolo_small()
-model2 = yolooo.yolo_tiny()
+model = yolooo.yolo_small()
+#model2 = yolooo.yolo_tiny()
 
 
 
