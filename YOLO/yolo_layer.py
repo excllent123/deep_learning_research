@@ -30,7 +30,7 @@ class YoloDetector(Layer):
     def encode(self, annotations):
         ''' annotations : nested list contained
         '''
-        S, B, C, W, H = self.S, self.B, self.C, self.W, self.
+        S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
 
         # init
         classProb  = np.zeros([S, S, C   ])
@@ -54,7 +54,7 @@ class YoloDetector(Layer):
             boxes[tarIdX, tarIdY, :, 2] = np.sqrt(boxW/W)
             boxes[tarIdX, tarIdY, :, 3] = np.sqrt(boxH/H)
 
-        yield np.concatenate([classProb.flatten(),confidence.flatten(),
+        return np.concatenate([classProb.flatten(),confidence.flatten(),
                                boxes.flatten()])
 
     def traDim(self, pred, mode=3):
@@ -201,10 +201,10 @@ class YoloDetector(Layer):
 
 if __name__ =='__main__':
     detector = YoloDetector()
-    a = detector.encode(3, 22, 12, 123, 123)
-    b = detector.encode(4, 22, 12, 123, 123)
-    c = detector.encode(3, 22, 12, 123, 123)
-    d = detector.encode(4, 23, 15, 111, 121)
+    a = detector.encode([[3, 22, 12, 123, 123]])
+    b = detector.encode([[4, 22, 12, 123, 123]])
+    c = detector.encode([[3, 22, 12, 123, 123]])
+    d = detector.encode([[4, 23, 15, 111, 121]])
     print detector.decode(a)
     print detector.decode(b)
     print detector.decode(c)

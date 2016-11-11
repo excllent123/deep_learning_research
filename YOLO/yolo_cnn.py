@@ -9,7 +9,7 @@ from keras.layers.core import Activation, Flatten, Dropout, Dense
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Sequential
 
-from yolo_layer import YoloDetect
+from yolo_layer import YoloDetector
 
 # =============================================================================
 # This module contains following network architecture 
@@ -196,9 +196,9 @@ class YoloNetwork(object):
         pass
 
 
-
-yolooo = YoloNetwork()
-model = yolooo.yolo_small()
+if __name__ =='__main__':
+    yolooo = YoloNetwork()
+    model = yolooo.yolo_small()
 #model2 = yolooo.yolo_tiny()
 
 
