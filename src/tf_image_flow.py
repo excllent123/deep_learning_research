@@ -32,3 +32,14 @@ with tf.Session() as sess:
     # Finish off the filename queue coordinator.
     coord.request_stop()
     coord.join(threads)
+
+
+        # Generate batch
+    num_preprocess_threads = 1
+    min_queue_examples = 256
+    images = tf.train.shuffle_batch(
+        [image],
+        batch_size=batch_size,
+        num_threads=num_preprocess_threads,
+        capacity=min_queue_examples + 3 * batch_size,
+        min_after_dequeue=min_queue_examples)
