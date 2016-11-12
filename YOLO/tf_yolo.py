@@ -2,6 +2,7 @@
 from __future__ import division
 import numpy as np
 from keras.engine import Layer
+import tensorflow as tf 
 
 # =============================================================================
 # encode : (Ground Truth Box | Image ) -> Ground Truth Y
@@ -62,14 +63,14 @@ class YoloDetector(Layer):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
 
         if mode == 3 :
-            classProb  = np.reshape(pred[0:S*S*C]         , (S,S,C))
-            confidence = np.reshape(pred[S*S*C: S*S*(C+B)], (S,S,B)) 
-            boxes      = np.reshape(pred[S*S*(C+B):]      , (S,S,B,4))
+            classProb  = tf.reshape(pred[0:S*S*C]         , (S,S,C))
+            confidence = tf.reshape(pred[S*S*C: S*S*(C+B)], (S,S,B)) 
+            boxes      = tf.reshape(pred[S*S*(C+B):]      , (S,S,B,4))
 
         elif mode == 2 :
-            classProb  = np.reshape(pred[0:S*S*C]         , (S*S,C))
-            confidence = np.reshape(pred[S*S*C: S*S*(C+B)], (S*S,B)) 
-            boxes      = np.reshape(pred[S*S*(C+B):]      , (S*S,B,4))
+            classProb  = tf.reshape(pred[0:S*S*C]         , (S*S,C))
+            confidence = tf.reshape(pred[S*S*C: S*S*(C+B)], (S*S,B)) 
+            boxes      = tf.reshape(pred[S*S*(C+B):]      , (S*S,B,4))
 
         return classProb, confidence, boxes        
 
@@ -135,20 +136,36 @@ class YoloDetector(Layer):
     def loss(self, truY, preY, COORD=5. , NOOBJ=.5 , loss_=0):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
 
-        truY = np.asarray(truY)
-        preY = np.asarray(preY)
-
         truCP ,truConf, truB = self.traDim(truY, mode=2)
         preCP ,preConf, preB = self.traDim(preY, mode=2)
 
+        #print truCP
+
         # Select for responsible box which with max IOU
         iouT = self.iouTensor(truB,preB)           # iouT (7*7,2)
-        iouT = np.argmax(iouT, axis=1).astype(int) # (7*7)
+        iouT = tf.argmax(iouT, dimension=1) # (7*7)
+        print iouT
+        print truB
 
-        truB    = np.array([truB[i,j,:]  for i,j in enumerate(iouT)])
-        preB    = np.array([preB[i,j,:]  for i,j in enumerate(iouT)])
-        truConf = np.array([truConf[i,j] for i,j in enumerate(iouT)])
-        preConf = np.array([preConf[i,j] for i,j in enumerate(iouT)])
+        # tf.cast(x, dtype, name=None)
+        def slec_Box(raw , iouT):
+            for i in range(S*S):
+                j = iouT[i]
+
+                # flatten input 2D 
+                raw = tf.reshape(raw,[-1]) 
+
+                # cast the idx to the right tyle
+                idx = tf.cast(tf.constant([0,1,2,3]), tf.int64)
+                idx_flattened = idx + (i*B*4+j)              
+                yield tf.gather(raw, idx_flattened)
+
+        # https://github.com/tensorflow/tensorflow/issues/206
+        
+        truB    = tf.pack ([ a for a in slec_Box(truB    , iouT)] )
+        preB    = tf.pack ([ a for a in slec_Box(preB    , iouT)] )
+        truConf = tf.pack ([ a for a in slec_Box(truConf , iouT)] )
+        preConf = tf.pack ([ a for a in slec_Box(preConf , iouT)] )
 
         # Obj or noobj is actually only depend on truth
         objMask  = np.array([ max(i) for i in truCP])
@@ -165,21 +182,25 @@ class YoloDetector(Layer):
 
     def iouTensor(self, box1, box2):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
-        assert box1.shape == box2.shape == (S*S,B,4)
+        assert box1.get_shape() == box2.get_shape() == (S*S,B,4)
         
         fmin = np.vectorize(min)
         fmax = np.vectorize(max)
 
-        minTop = fmin(box1[:,:,0]+0.5*box1[:,:,2],
+        minTop = tf.minimum(box1[:,:,0]+0.5*box1[:,:,2],
                       box2[:,:,0]+0.5*box2[:,:,2])
-        maxBot = fmax(box1[:,:,0]-0.5*box1[:,:,2],
+        maxBot = tf.maximum(box1[:,:,0]-0.5*box1[:,:,2],
                       box2[:,:,0]-0.5*box2[:,:,2])
-        minR   = fmin(box1[:,:,1]+0.5*box2[:,:,3],
+        minR   = tf.minimum(box1[:,:,1]+0.5*box2[:,:,3],
                       box1[:,:,1]+0.5*box2[:,:,3])
-        maxL   = fmax(box1[:,:,1]-0.5*box2[:,:,3],
+        maxL   = tf.maximum(box1[:,:,1]-0.5*box2[:,:,3],
                       box1[:,:,1]-0.5*box2[:,:,3])
         # intersection
-        inters = (minTop-maxBot).clip(min=0)* (minR-maxL).clip(min=0) 
+
+        #tf.clip_by_value(t, clip_value_min, clip_value_max, name=None)
+
+        inters = tf.clip_by_value( minTop-maxBot, clip_value_min=0, clip_value_max=999)* \
+                 tf.clip_by_value( minR-maxL    , clip_value_min=0, clip_value_max=999)
         noZero = 0.000000001 # Return IOU and avoid devide zero
         return inters/ (self.boxArea(box1)+ self.boxArea(box2)- inters+ noZero)
 
