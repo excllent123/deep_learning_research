@@ -19,16 +19,19 @@ from yolo_layer import YoloDetector
 # =============================================================================
 
 class YoloNetwork(object):
-    def __init__(self, numCla=20, rImgW=448, rImgH=448, S=7, B=2):
+    def __init__(self, numCla=20, rImgW=448, rImgH=448, S=7, B=2, classMap=0):
         self.S = S
         self.B = B
         self.C = numCla
         self.W = rImgW
         self.H = rImgH
         self.iou_threshold=0.5
-        self.classMap  =  ["aeroplane", "bicycle", "bird", "boat", "bottle", "bus", 
-        "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", 
-        "person", "pottedplant", "sheep", "sofa", "train","tvmonitor"]
+        if classMap==0:
+            self.classMap  =  ["aeroplane", "bicycle", "bird", "boat", "bottle", "bus", 
+                "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", 
+                "person", "pottedplant", "sheep", "sofa", "train","tvmonitor"]
+        else: 
+            self.classMap=classMap
 
     def yolo_small(self):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
@@ -179,7 +182,7 @@ class YoloNetwork(object):
         model.add(Dense(4096))
         model.add(LeakyReLU(alpha=0.1))
         model.add(Dropout(0.5))
-        model.add(Dense(1470, activation='linear'))
+        model.add(Dense(S*S*(5*B+C), activation='linear'))
 
         model.summary()
         return model

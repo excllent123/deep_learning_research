@@ -3,18 +3,19 @@ import os
 import pandas as pd
 from skimage.io import imread
 from yolo_layer import YoloDetector
+import cv2
 
 #==============================================================================
 # Author : Kent Chiu (kentchun33333@gmail.com)
 # This is a script that manipulate the data from vatic-data to yolo setting 
 #==============================================================================
 
-class YoloPreprocess(object):
+class VaticPreprocess(object):
     
     def __init__(self, fileName, maplist):
         self.df = self.get_vatic_df(fileName)
         self.maplist = maplist
-        self.detector = YoloDetector()
+        self.detector = YoloDetector(numCla=len(maplist), classMap=maplist)
 
     def get_vatic_df(self, fileName):
         '''from vatic.txt, get df object'''
@@ -123,7 +124,7 @@ class YoloPreprocess(object):
 if __name__ =='__main__':
     file_path = '../data_test/vatic_example.txt'
     maplist = ['Rhand', 'ScrewDriver']
-    yoloProcessor = YoloPreprocess(file_path, maplist=maplist)
+    yoloProcessor = VaticPreprocess(file_path, maplist=maplist)
     import cv2 
     import numpy as np 
 

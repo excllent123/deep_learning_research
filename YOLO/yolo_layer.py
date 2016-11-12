@@ -11,17 +11,19 @@ from keras.engine import Layer
 
 
 class YoloDetector(Layer):
-    def __init__(self, numCla=20, rImgW=448, rImgH=448, S=7, B=2):
+    def __init__(self, numCla=20, rImgW=448, rImgH=448, S=7, B=2, classMap=0):
         self.S = S
         self.B = B
         self.C = numCla
         self.W = rImgW
         self.H = rImgH
         self.iou_threshold=0.5
-        self.classMap  =  ["aeroplane", "bicycle", "bird", "boat", "bottle", 
-                           "bus", "car", "cat", "chair", "cow", "diningtable",
-                           "dog", "horse", "motorbike", "person", "pottedplant",
-                           "sheep", "sofa", "train","tvmonitor"]
+        if classMap==0:
+            self.classMap  =  ["aeroplane", "bicycle", "bird", "boat", "bottle", "bus", 
+                "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", 
+                "person", "pottedplant", "sheep", "sofa", "train","tvmonitor"]
+        else: 
+            self.classMap=classMap
 
     def set_class_map(self, mappingList):
         assert type(mappingList)==list ; assert len(mappingList) == self.C
@@ -132,29 +134,39 @@ class YoloDetector(Layer):
 
         return result
 
-    def loss(self, truY, preY, COORD=5. , NOOBJ=.5 , loss_=0):
+    def loss(self, y_true, y_pred):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
+        from keras import backend as K
+        COORD=5.
+        NOOBJ=.5 
+        loss_=0
 
-        truCP ,truConf, truB = self.traDim(truY, mode=2)
-        preCP ,preConf, preB = self.traDim(preY, mode=2)
+        print (y_true)
+        truYs = np.asarray(y_true)
+        preYs = np.asarray(y_pred)
+        print truYs.shape
+        for truY, preY in truYs, preYs:
 
-        # Select for responsible box which with max IOU
-        iouT = self.iouTensor(truB,preB)           # iouT (7*7,2)
-        iouT = np.argmax(iouT, axis=1).astype(int) # (7*7)
+            truCP ,truConf, truB = self.traDim(truY, mode=2)
+            preCP ,preConf, preB = self.traDim(preY, mode=2)    
 
-        truB    = np.array([truB[i,j,:]  for i,j in enumerate(iouT)])
-        preB    = np.array([preB[i,j,:]  for i,j in enumerate(iouT)])
-        truConf = np.array([truConf[i,j] for i,j in enumerate(iouT)])
-        preConf = np.array([preConf[i,j] for i,j in enumerate(iouT)])
+            # Select for responsible box which with max IOU
+            iouT = self.iouTensor(truB,preB)           # iouT (7*7,2)
+            iouT = np.argmax(iouT, axis=1).astype(int) # (7*7)    
 
-        # Obj or noobj is actually only depend on truth
-        objMask  = np.array([ max(i) for i in truCP])
-        nobjMask = 1 - np.array([ max(i) for i in truCP])
+            truB    = np.array([truB[i,j,:]  for i,j in enumerate(iouT)])
+            preB    = np.array([preB[i,j,:]  for i,j in enumerate(iouT)])
+            truConf = np.array([truConf[i,j] for i,j in enumerate(iouT)])
+            preConf = np.array([preConf[i,j] for i,j in enumerate(iouT)])    
 
-        loss_ += sum(pow( (truB-preB), 2).sum(axis=1)    * objMask  ) * COORD 
-        loss_ += sum(pow( (truConf- preConf) , 2)        * objMask  )
-        loss_ += sum(pow( (truConf- preConf), 2)         * nobjMask ) * NOOBJ
-        loss_ += sum(pow( (truCP- preCP), 2).sum(axis=1) * objMask  )
+            # Obj or noobj is actually only depend on truth
+            objMask  = np.array([ max(i) for i in truCP])
+            nobjMask = 1 - np.array([ max(i) for i in truCP])    
+
+            loss_ += sum(pow( (truB-preB), 2).sum(axis=1)    * objMask  ) * COORD 
+            loss_ += sum(pow( (truConf- preConf) , 2)        * objMask  )
+            loss_ += sum(pow( (truConf- preConf), 2)         * nobjMask ) * NOOBJ
+            loss_ += sum(pow( (truCP- preCP), 2).sum(axis=1) * objMask  )
         return loss_
 
     def boxArea(self, box):
