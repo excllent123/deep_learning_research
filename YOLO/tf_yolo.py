@@ -12,10 +12,11 @@ import tensorflow as tf
 
 
 class YoloDetector(Layer):
-    def __init__(self, numCla=20, rImgW=448, rImgH=448, S=7, B=2):
+    def __init__(self, C=20, rImgW=448, rImgH=448, S=7, B=2):
+        # C = number of class
         self.S = S
         self.B = B
-        self.C = numCla
+        self.C = C
         self.W = rImgW
         self.H = rImgH
         self.iou_threshold=0.5
@@ -133,48 +134,68 @@ class YoloDetector(Layer):
 
         return result
 
-    def loss(self, truY, preY, COORD=5. , NOOBJ=.5 , loss_=0):
+    def loss(self, truY_, preY_, COORD=5. , NOOBJ=.5 , loss_=0 , batch_size=8):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
 
-        truCP ,truConf, truB = self.traDim(truY, mode=2)
-        preCP ,preConf, preB = self.traDim(preY, mode=2)
+        for batch in range(batch_size):
+            truY = truY_[batch,:]
+            preY = preY_[batch,:]
 
-        #print truCP
+            truCP ,truConf, truB = self.traDim(truY, mode=2)
+            preCP ,preConf, preB = self.traDim(preY, mode=2)    
 
-        # Select for responsible box which with max IOU
-        iouT = self.iouTensor(truB,preB)           # iouT (7*7,2)
-        iouT = tf.argmax(iouT, dimension=1) # (7*7)
-        print iouT
-        print truB
+            #print truCP    
 
-        # tf.cast(x, dtype, name=None)
-        def slec_Box(raw , iouT):
-            for i in range(S*S):
-                j = iouT[i]
+            # Select for responsible box which with max IOU
+            iouT = self.iouTensor(truB,preB)           # iouT (7*7,2)
+            iouT = tf.argmax(iouT, dimension=1) # (7*7)    
 
-                # flatten input 2D 
-                raw = tf.reshape(raw,[-1]) 
+            # tf.cast(x, dtype, name=None)
+            def slec_Box(raw , iouT):
+                for i in range(S*S):
+                    j = iouT[i]    
 
-                # cast the idx to the right tyle
-                idx = tf.cast(tf.constant([0,1,2,3]), tf.int64)
-                idx_flattened = idx + (i*B*4+j)              
-                yield tf.gather(raw, idx_flattened)
+                    # flatten input 2D 
+                    raw = tf.reshape(raw,[-1])     
 
-        # https://github.com/tensorflow/tensorflow/issues/206
-        
-        truB    = tf.pack ([ a for a in slec_Box(truB    , iouT)] )
-        preB    = tf.pack ([ a for a in slec_Box(preB    , iouT)] )
-        truConf = tf.pack ([ a for a in slec_Box(truConf , iouT)] )
-        preConf = tf.pack ([ a for a in slec_Box(preConf , iouT)] )
+                    # cast the idx to the right tyle
+                    idx = tf.cast(tf.constant([0,1,2,3]), tf.int64)
+                    idx_flattened = idx + (i*B*4+j)              
+                    yield tf.gather(raw, idx_flattened)    
 
-        # Obj or noobj is actually only depend on truth
-        objMask  = np.array([ max(i) for i in truCP])
-        nobjMask = 1 - np.array([ max(i) for i in truCP])
+            def slec_conf(raw , iouT):
+                for i in range(S*S):
+                    j = iouT[i]    
 
-        loss_ += sum(pow( (truB-preB), 2).sum(axis=1)    * objMask  ) * COORD 
-        loss_ += sum(pow( (truConf- preConf) , 2)        * objMask  )
-        loss_ += sum(pow( (truConf- preConf), 2)         * nobjMask ) * NOOBJ
-        loss_ += sum(pow( (truCP- preCP), 2).sum(axis=1) * objMask  )
+                    # flatten input 2D 
+                    raw = tf.reshape(raw,[-1])     
+
+                    # cast the idx to the right tyle
+                    idx = tf.cast(tf.constant([0]), tf.int64)
+                    idx_flattened = idx + (i*B+j)              
+                    yield tf.gather(raw, idx_flattened)
+            # https://github.com/tensorflow/tensorflow/issues/206
+            
+            truB    = tf.pack ([ a for a in slec_Box (truB    , iouT)] )
+            preB    = tf.pack ([ a for a in slec_Box (preB    , iouT)] )
+            truConf = tf.pack ([ a for a in slec_conf(truConf , iouT)] )
+            preConf = tf.pack ([ a for a in slec_conf(preConf , iouT)] )    
+
+            # Obj or noobj is actually only depend on truth
+            # truCP = (S*S,C)
+            def max_tf(raw):
+                for i in range(S*S):
+                    tmp = raw[i,:]
+                    tmp = tf.reduce_max(tmp)
+                    yield tmp    
+
+            objMask  = tf.pack([ a for a in max_tf(truCP) ])
+            nobjMask = 1 - objMask    
+
+            loss_ += tf.reduce_sum(tf.reduce_sum(tf.pow(truB-preB, 2), 1)   * objMask  ) * COORD 
+            loss_ += tf.reduce_sum(tf.pow(truConf- preConf, 2)              * objMask  )
+            loss_ += tf.reduce_sum(tf.pow(truConf- preConf, 2)              * nobjMask ) * NOOBJ
+            loss_ += tf.reduce_sum(tf.reduce_sum(tf.pow(truCP- preCP, 2), 1)* objMask  )
         return loss_
 
     def boxArea(self, box):
@@ -184,9 +205,6 @@ class YoloDetector(Layer):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
         assert box1.get_shape() == box2.get_shape() == (S*S,B,4)
         
-        fmin = np.vectorize(min)
-        fmax = np.vectorize(max)
-
         minTop = tf.minimum(box1[:,:,0]+0.5*box1[:,:,2],
                       box2[:,:,0]+0.5*box2[:,:,2])
         maxBot = tf.maximum(box1[:,:,0]-0.5*box1[:,:,2],
