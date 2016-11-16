@@ -196,7 +196,7 @@ class YoloDetector(Layer):
             loss_ += tf.reduce_sum(tf.pow(truConf- preConf, 2)              * objMask  )
             loss_ += tf.reduce_sum(tf.pow(truConf- preConf, 2)              * nobjMask ) * NOOBJ
             loss_ += tf.reduce_sum(tf.reduce_sum(tf.pow(truCP- preCP, 2), 1)* objMask  )
-        return loss_
+        return loss_ / batch_size
 
     def boxArea(self, box):
         return box[:,:,2]*box[:,:,3]

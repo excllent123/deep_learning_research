@@ -12,10 +12,13 @@ import cv2
 
 class VaticPreprocess(object):
     
-    def __init__(self, fileName, maplist):
+    def __init__(self, fileName, maplist, detector):
         self.df = self.get_vatic_df(fileName)
         self.maplist = maplist
-        self.detector = YoloDetector(numCla=len(maplist), classMap=maplist)
+        if not detector:
+            self.detector = YoloDetector(numCla=len(maplist), classMap=maplist)
+        else :
+            self.detector = detector
 
     def get_vatic_df(self, fileName):
         '''from vatic.txt, get df object'''
@@ -77,6 +80,8 @@ class VaticPreprocess(object):
 
             frameID = filename.split('.')[0]
             frame = imread(os.path.join(folder, filename))
+
+            frame *= int(255.0/frame.max())    # Uses 1 division and image.size multiplications
 
             # === This Section Shoud Be Refractoried ===
 

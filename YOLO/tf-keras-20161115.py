@@ -62,7 +62,7 @@ H = 448
 S = 7
 B = 2
 C = 2
-batch_size = 3
+batch_size = 4
 epoch_size = 25
 
 model_name = __file__.split('\\')[-1].split('.')[0]
@@ -98,7 +98,7 @@ loss = A.loss(true_y, pred_y, batch_size=batch_size) # tf-stle slice must have s
 
 #loss = tf.py_func(A.loss, true_y[0,:], pred_y[0,:])
 
-train_step = tf.train.GradientDescentOptimizer(0.00001).minimize(loss)
+train_step = tf.train.GradientDescentOptimizer(0.000000000001).minimize(loss)
 # Initializing the variables
 init = tf.initialize_all_variables()
 
@@ -121,84 +121,8 @@ with tf.Session() as sess :
             if step % 2 ==0:
                 lossN  =  sess.run([loss], feed_dict = 
                     {input_X : images_feed, true_y :labels_feed, K.learning_phase(): 1})
-                print ('Iter : ', step)
-                print ('Loss : ', lossN)    
+                print ('EP [{}] Iter {} Loss {}'.format(epoch,step, lossN))    
 
             step+=1
         epoch +=1
         model.save_weights('my_weights.h5')
-# K._LEARNING_PHASE = tf.constant(0)
-# The value feeding cant not be a tensor obj 
-# loss = NAN ==> EXPLODE of Gradient ===> need small learning rate or...
-# Batch-loss might have bug due to the last batch might insufficient
-
-
-#tf.py_func(func, inp, Tout, name=None)
-# Wraps a python function and uses it as a tensorflow op.
-
-# Given a python function func, which takes numpy arrays as its inputs a
-# nd returns numpy arrays as its outputs. E.g.,
-
-
-#with tf.Session():
-#  a = tf.random_uniform((3, 3))
-#  b = a.eval()  
-
-  # Runs to get the output of 'a' and converts it to a numpy array
-'''
-K.set_learning_phase(0)
-
-x = Convolution2D(16, 3, 3, border_mode='same' )(input_X)
-x = LeakyReLU(alpha=0.1)(x)
-x = MaxPooling2D(pool_size=(2, 2),border_mode='same' , strides=(2,2))(x)
-
-x = Convolution2D(32,3,3,border_mode='same')(x)
-x = LeakyReLU(alpha=0.1)(x)
-x = MaxPooling2D(pool_size=(2, 2),border_mode='same' , strides=(2,2))(x)
-
-x = Convolution2D(64,3,3,border_mode='same')(x)
-x = LeakyReLU(alpha=0.1)(x)
-x = MaxPooling2D(pool_size=(2, 2),border_mode='same' , 
-    strides=(2,2))(x)
-
-x = Convolution2D(128,3,3,border_mode='same')(x)
-x = LeakyReLU(alpha=0.1)(x)
-x = MaxPooling2D(pool_size=(2, 2),border_mode='same' , 
-    strides=(2,2))(x)
-
-x = Convolution2D(256,3,3,border_mode='same')(x)
-x = LeakyReLU(alpha=0.1)(x)
-x = MaxPooling2D(pool_size=(2, 2),border_mode='same' , 
-    strides=(2,2))(x)
-
-x = Convolution2D(512,3,3,border_mode='same')(x)
-x = LeakyReLU(alpha=0.1)(x)
-x = MaxPooling2D(pool_size=(2, 2),border_mode='same' , 
-    strides=(2,2))(x)
-
-x = Convolution2D(1024,3,3,border_mode='same')(x)
-x = LeakyReLU(alpha=0.1)(x)
-
-x = Convolution2D(1024,3,3,border_mode='same')(x)
-x = LeakyReLU(alpha=0.1)(x)
-
-x = Convolution2D(1024,3,3,border_mode='same')(x)
-x = LeakyReLU(alpha=0.1)(x)
-
-# x = Flatten()(x) # Cause some problem
-# replace by flowing 
-# https://github.com/fchollet/keras/issues/4207
-x = tf.reshape(x, [-1, np.prod(x.get_shape()[1:].as_list())])
-
-x = Dense(256, activation='linear')(x)
-
-x = Dense(4096)(x)
-x = LeakyReLU(alpha=0.1)(x)
-x = Dropout(0.5)(x)
-pred = Dense(S*S*(B*5+C), activation='linear')(x)
-
-model = Model(input=Input(shape=input_X.get_shape()), output=Input(shape=pred.get_shape()))
-model.summary()
-'''
-
-        

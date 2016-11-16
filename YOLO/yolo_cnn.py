@@ -235,8 +235,8 @@ class YoloNetwork(object):
         model.add(Flatten())
         model.add(Dense(256, activation='linear'))
         model.add(Dense(2048))
-        model.add(LeakyReLU(alpha=0.1))
-        model.add(Dropout(0.2))
+        #model.add(LeakyReLU(alpha=0.1))
+        model.add(Dropout(0.5))
         model.add(Dense(S*S*(5*B+C), activation='linear'))
 
         model.summary()
