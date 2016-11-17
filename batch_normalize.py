@@ -3,6 +3,20 @@ from .. import initializations, regularizers
 from .. import backend as K
 
 
+input
+2D tensor
+3D tensor
+4D tensor 
+ND tensor
+
+import numpy as np
+
+
+mu = 1/N*np.sum(h,axis =0) # Size (H,) 
+sigma2 = 1/N*np.sum((h-mu)**2,axis=0)# Size (H,) 
+hath = (h-mu)*(sigma2+epsilon)**(-1./2.)
+y = gamma*hath+beta 
+
 class BatchNormalization(Layer):
     '''Normalize the activations of the previous layer at each batch,
     i.e. applies a transformation that maintains the mean activation
