@@ -26,7 +26,7 @@ H = 448
 S = 4
 B = 2
 C = 2
-batch_size = 16
+batch_size = 1
 epoch_size = 25
 
 model_name = __file__.split('\\')[-1].split('.')[0]
@@ -101,10 +101,13 @@ with tf.Session() as sess :
     # test mode
     epoch = 1
     while epoch < epoch_size:
+        save_path = saver.save(sess, "../hub/model/20161118.ckpt",global_step=epoch )
+        print ('SAVE TF model',save_path)
+
         
         try : 
 
-            saver.restore(sess, "model.ckpt")
+            saver.restore(sess, "../hub/model/20161118.ckpt-{}".format(epoch))
             print ('Load TF Variables')
         except:
 
@@ -137,11 +140,8 @@ with tf.Session() as sess :
             print ('SAVE Weight')
         except : 
             print ('NOT SAVE WEIGHT')  
-        try : 
-            save_path = saver.save(sess, "..hub/model/model.ckpt", )
-            print ('SAVE TF model',save_path)
-        except:
-            print ('NOT SAVE TF MODEL')
+        
+
 
 
         

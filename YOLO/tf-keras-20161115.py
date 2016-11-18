@@ -98,7 +98,7 @@ loss = A.loss(true_y, pred_y, batch_size=batch_size) # tf-stle slice must have s
 
 #loss = tf.py_func(A.loss, true_y[0,:], pred_y[0,:])
 
-train_step = tf.train.GradientDescentOptimizer(0.000000000001).minimize(loss)
+train_step = tf.train.GradientDescentOptimizer(0.0000001).minimize(loss)
 # Initializing the variables
 init = tf.initialize_all_variables()
 
@@ -107,8 +107,10 @@ with tf.Session() as sess :
     # test mode
     epoch = 1
     while epoch < epoch_size:
-        model.load_weights('my_weights.h5')    
-
+        try:
+            model.load_weights('my_weights_2.h5')    
+        except:
+            print ('NOT LOAD WEIGHT')
         step = 1
         DATAFLOW = processer.genYOLO_foler_batch('../data/vatic_id2', batch_size=batch_size)
         for images_feed, labels_feed in DATAFLOW :
@@ -125,4 +127,8 @@ with tf.Session() as sess :
 
             step+=1
         epoch +=1
-        model.save_weights('my_weights.h5')
+        
+        model.save_weights('my_weights_2.h5')
+        print ('SAVE WEIGHT')
+        #except:
+        #    print ('NOT SAVING WEIGHT')
