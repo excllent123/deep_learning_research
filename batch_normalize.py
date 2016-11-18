@@ -3,13 +3,35 @@ from .. import initializations, regularizers
 from .. import backend as K
 
 
-input
-2D tensor
-3D tensor
-4D tensor 
-ND tensor
+# input
+# 2D tensor
+# 3D tensor
+# 4D tensor 
+# ND tensor
 
 import numpy as np
+
+
+
+def batch_norm_forward(input_tensor, beta, gamma , epsilon=0.0001):
+    # input_tensor = N, H, W, C where N = batch size
+    # step 1 mini-batch mean
+
+    N, H, W, C  = tf.get_shape()
+    mean = tf.reduce_sum(input_tensor, reduction_indices=0 ) / (H*W*C) # Size (N)
+
+    # step 2 mini-batch variance
+    variance = tf.pow(tf.reduct(input_tensor-mean) ,2)
+
+
+    # step 3 normalized 
+    # step 4 shift and scale 
+    mean = np.mean(input_tensor)
+    N    = tf.get_shape()[0]
+    mean = tf.reduce_sum(input_tensor)/ N
+    variance = 
+    input_tensor -= mean
+
 
 
 mu = 1/N*np.sum(h,axis =0) # Size (H,) 
