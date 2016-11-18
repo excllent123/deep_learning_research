@@ -58,5 +58,4 @@ Thumbs.db
 *.pkl
 *.gz
 
-*.data.*
-*.ckpt
+*.ckpt*
