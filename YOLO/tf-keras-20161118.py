@@ -90,9 +90,9 @@ loss = A.loss(true_y, pred_y, batch_size=batch_size) # tf-stle slice must have s
 
 train_step = tf.train.GradientDescentOptimizer(0.0001).minimize(loss)
 # Initializing the variables
-init = tf.initialize_all_variables()
-
-
+#init = tf.initialize_all_variables()
+init = tf.group(tf.global_variables_initializer(),
+                       tf.local_variables_initializer())
 saver = tf.train.Saver()
 
 with tf.Session() as sess : 
