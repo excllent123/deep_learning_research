@@ -38,7 +38,7 @@ class YoloNetwork(object):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
         model = Sequential()
 
-        model.add(Convolution2D(64, 7, 7, input_shape=(W,H,3), 
+        model.add(Convolution2D(64, 7, 7, input_shape=(H,W,3), 
             border_mode='same' , subsample=(2,2)))
         model.add(LeakyReLU(alpha=0.1))
         model.add(MaxPooling2D(pool_size=(2, 2),border_mode='same' , 
