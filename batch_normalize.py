@@ -12,7 +12,6 @@ from .. import backend as K
 import numpy as np
 
 
-
 def batch_norm_forward(input_tensor, beta, gamma , epsilon=0.0001):
     # input_tensor = N, H, W, C where N = batch size
     # step 1 mini-batch mean
