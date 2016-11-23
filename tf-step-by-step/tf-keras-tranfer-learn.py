@@ -73,3 +73,4 @@ with tf.Session() as sess:
         verbose=1,
         nb_val_samples=X_val.shape[0],
         validation_data=val_gen())
+    
