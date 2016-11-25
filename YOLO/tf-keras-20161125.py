@@ -83,7 +83,7 @@ loss = A.loss(true_y, pred_y, batch_size=batch_size) # tf-stle slice must have s
 #loss = tf.py_func(A.loss, true_y[0,:], pred_y[0,:])
 
 # train_step = tf.train.GradientDescentOptimizer(0.001).minimize(loss)
-train_step = tf.train.RMSPropOptimizer(0.0000001, momentum=0.9).minimize(loss)
+train_step = tf.train.RMSPropOptimizer(0.00001, momentum=0.9).minimize(loss)
 # Initializing the variables
 init = tf.initialize_all_variables()
 
@@ -93,10 +93,13 @@ with tf.Session() as sess :
     epoch = 1
     while epoch < epoch_size:
         if epoch == 1:
-            model.load_weights('tf-keras-20161120.h5') 
+            try:
+                model.load_weights('tf-keras-20161125.h5') 
+            except :
+                pass
         else : 
             try:
-                model.load_weights('tf-keras-20161120-v2.h5')    
+                model.load_weights('tf-keras-20161125.h5')    
             except:
                 print ('NOT LOAD WEIGHT')
         step = 1
@@ -117,13 +120,9 @@ with tf.Session() as sess :
         epoch +=1
 
         try:
-            model.save_weights('tf-keras-20161120-v2.h5')
+            model.save_weights('tf-keras-20161125.h5')
             print ('SAVE WEIGHT')
         except:
             print ('NOT SAVE')
-# tf-keras-20161120.h5 for 36hrs traning 
 
-# continue with saving v2
-
-# After 300+ addition eproch , tf-keras-20161120-v2.h5 achieve around 0.3~0.5 loss
 

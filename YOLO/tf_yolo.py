@@ -19,7 +19,7 @@ class YoloDetector(Layer):
         self.C = C
         self.W = rImgW
         self.H = rImgH
-        self.iou_threshold=0.5
+        self.iou_threshold=0.1
         self.classMap  =  ["aeroplane", "bicycle", "bird", "boat", "bottle", 
                            "bus", "car", "cat", "chair", "cow", "diningtable",
                            "dog", "horse", "motorbike", "person", "pottedplant",
@@ -64,9 +64,10 @@ class YoloDetector(Layer):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
 
         if mode == 3 :
-            classProb  = tf.reshape(pred[0:S*S*C]         , (S,S,C))
-            confidence = tf.reshape(pred[S*S*C: S*S*(C+B)], (S,S,B)) 
-            boxes      = tf.reshape(pred[S*S*(C+B):]      , (S,S,B,4))
+            pred = np.array(pred)
+            classProb  = np.reshape(pred[0:S*S*C]         , (S,S,C))
+            confidence = np.reshape(pred[S*S*C: S*S*(C+B)], (S,S,B)) 
+            boxes      = np.reshape(pred[S*S*(C+B):]      , (S,S,B,4))
 
         elif mode == 2 :
             classProb  = tf.reshape(pred[0:S*S*C]         , (S*S,C))
@@ -75,7 +76,7 @@ class YoloDetector(Layer):
 
         return classProb, confidence, boxes        
 
-    def decode(self, prediction,threshold=0.2 ,only_objectness=0):
+    def decode(self, prediction,threshold=8e-25 ,only_objectness=0):
         '''
         this part is modified from https://github.com/gliese581gg/YOLO_tensorflow
         '''

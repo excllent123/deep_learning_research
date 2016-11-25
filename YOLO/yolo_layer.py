@@ -11,10 +11,10 @@ from keras.engine import Layer
 
 
 class YoloDetector(Layer):
-    def __init__(self, numCla=20, rImgW=448, rImgH=448, S=7, B=2, classMap=0):
+    def __init__(self, C=20, rImgW=448, rImgH=448, S=7, B=2, classMap=0):
         self.S = S
         self.B = B
-        self.C = numCla
+        self.C = C
         self.W = rImgW
         self.H = rImgH
         self.iou_threshold=0.5
@@ -134,63 +134,37 @@ class YoloDetector(Layer):
 
         return result
 
-    def loss(self, y_true, y_pred):
+    def loss(self, truY, preY, loss_=0):
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
+
+        COORD=5.
+        NOOBJ=.5 
 
         truY = np.asarray(truY)
         preY = np.asarray(preY)
-
+        #############################
+        # this is not batch style
+        # check tf_yolo.py
         truCP ,truConf, truB = self.traDim(truY, mode=2)
-        preCP ,preConf, preB = self.traDim(preY, mode=2)
+        preCP ,preConf, preB = self.traDim(preY, mode=2)    
 
         # Select for responsible box which with max IOU
         iouT = self.iouTensor(truB,preB)           # iouT (7*7,2)
-        iouT = np.argmax(iouT, axis=1).astype(int) # (7*7)
+        iouT = np.argmax(iouT, axis=1).astype(int) # (7*7)    
 
         truB    = np.array([truB[i,j,:]  for i,j in enumerate(iouT)])
         preB    = np.array([preB[i,j,:]  for i,j in enumerate(iouT)])
         truConf = np.array([truConf[i,j] for i,j in enumerate(iouT)])
-        preConf = np.array([preConf[i,j] for i,j in enumerate(iouT)])
+        preConf = np.array([preConf[i,j] for i,j in enumerate(iouT)])    
 
         # Obj or noobj is actually only depend on truth
         objMask  = np.array([ max(i) for i in truCP])
-        nobjMask = 1 - np.array([ max(i) for i in truCP])
+        nobjMask = 1 - np.array([ max(i) for i in truCP])    
 
         loss_ += sum(pow( (truB-preB), 2).sum(axis=1)    * objMask  ) * COORD 
         loss_ += sum(pow( (truConf- preConf) , 2)        * objMask  )
         loss_ += sum(pow( (truConf- preConf), 2)         * nobjMask ) * NOOBJ
         loss_ += sum(pow( (truCP- preCP), 2).sum(axis=1) * objMask  )
-
-        COORD=5.
-        NOOBJ=.5 
-        loss_=0
-
-        print (y_true)
-        truYs = np.asarray(y_true)
-        preYs = np.asarray(y_pred)
-        print truYs.shape
-        for truY, preY in truYs, preYs:
-
-            truCP ,truConf, truB = self.traDim(truY, mode=2)
-            preCP ,preConf, preB = self.traDim(preY, mode=2)    
-
-            # Select for responsible box which with max IOU
-            iouT = self.iouTensor(truB,preB)           # iouT (7*7,2)
-            iouT = np.argmax(iouT, axis=1).astype(int) # (7*7)    
-
-            truB    = np.array([truB[i,j,:]  for i,j in enumerate(iouT)])
-            preB    = np.array([preB[i,j,:]  for i,j in enumerate(iouT)])
-            truConf = np.array([truConf[i,j] for i,j in enumerate(iouT)])
-            preConf = np.array([preConf[i,j] for i,j in enumerate(iouT)])    
-
-            # Obj or noobj is actually only depend on truth
-            objMask  = np.array([ max(i) for i in truCP])
-            nobjMask = 1 - np.array([ max(i) for i in truCP])    
-
-            loss_ += sum(pow( (truB-preB), 2).sum(axis=1)    * objMask  ) * COORD 
-            loss_ += sum(pow( (truConf- preConf) , 2)        * objMask  )
-            loss_ += sum(pow( (truConf- preConf), 2)         * nobjMask ) * NOOBJ
-            loss_ += sum(pow( (truCP- preCP), 2).sum(axis=1) * objMask  )
 
         return loss_
 
@@ -237,11 +211,11 @@ class YoloDetector(Layer):
 
 
 if __name__ =='__main__':
-    detector = YoloDetector()
-    a = detector.encode([[3, 22, 12, 123, 123]])
-    b = detector.encode([[4, 22, 12, 123, 123]])
-    c = detector.encode([[3, 22, 12, 123, 123]])
-    d = detector.encode([[4, 23, 15, 111, 121]])
+    detector = YoloDetector(C=2, classMap=["aeroplane", "bicycle"])
+    a = detector.encode([[1, 22, 12, 123, 123]])
+    b = detector.encode([[1, 22, 12, 123, 123]])
+    c = detector.encode([[0, 22, 12, 123, 123]])
+    d = detector.encode([[0, 23, 15, 111, 121]])
     print detector.decode(a)
     print detector.decode(b)
     print detector.decode(c)

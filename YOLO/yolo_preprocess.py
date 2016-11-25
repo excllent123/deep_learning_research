@@ -12,11 +12,11 @@ import cv2
 
 class VaticPreprocess(object):
     
-    def __init__(self, fileName, maplist, detector):
+    def __init__(self, fileName, maplist, detector=None):
         self.df = self.get_vatic_df(fileName)
         self.maplist = maplist
         if not detector:
-            self.detector = YoloDetector(numCla=len(maplist), classMap=maplist)
+            self.detector = YoloDetector(C=len(maplist), classMap=maplist)
         else :
             self.detector = detector
 
@@ -40,19 +40,24 @@ class VaticPreprocess(object):
             startX, startY, endX, endY , label_name = i_list
             label_name = label_name.replace('"','').split('\n')[0]
 
+            # =================
+            # It works
+
             classid = maplist.index(label_name)
-            cX   = (int(startX)+int(endX))/2
-            cY   = (int(startY)+int(endY))/2
+            cY   = (int(startX)+int(endX))/2
+            cX   = (int(startY)+int(endY))/2
             boxW = int(endX) - int(startX)
             boxH = int(endY) - int(startY)    
 
             if scale_factor:
                 assert len(scale_factor)==2
                 scale_x, scale_y = scale_factor
-                cX*=scale_x
-                cY*=scale_y
+                cX*=scale_y
+                cY*=scale_x
                 boxW*=scale_x
                 boxH*=scale_y
+            # It works
+            # ======================
 
             annotations.append([classid, int(cX), int(cY), int(boxW), int(boxH)])  
         return annotations  
@@ -85,7 +90,7 @@ class VaticPreprocess(object):
 
             # === This Section Shoud Be Refractoried ===
 
-            w,h,c = frame.shape
+            h,w,c = frame.shape
             if w != 448 or h!=448:
                 frame = cv2.resize(frame, (448, 448)) 
                 scale_x = (448.0/w) 
@@ -140,6 +145,25 @@ if __name__ =='__main__':
         x = np.asarray(x)
         y = np.asarray(y)
         print (x.shape , y.shape)
+        img = x[0]
+        output_tensor = y[0]
+        bbx   =  yoloProcessor.detector.decode(output_tensor)
+
+        img_copy = img.copy()
+        for item in bbx: 
+            name, cX,cY,w,h , _= item
+            def check_50(x):
+                if x < 50 :
+                    x = 50 
+                return x
+            #cX,cY,w,h = map(check_50,[cX,cY,w,h] )
+            pt1= ( int(cX-0.5*w) ,int(cY-0.5*h) )
+            pt2= ( int(cX+0.5*w) ,int(cY+0.5*h) )    
+            cv2.rectangle(img_copy, pt1, pt2, (255,255,255), thickness=2)
+
+        cv2.imshow("Before",img)
+        cv2.imshow("After", img_copy)
+        cv2.waitKey()
 
         raw_input()
 

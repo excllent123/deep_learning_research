@@ -1,3 +1,5 @@
+import tensorflow as tf 
+
 
 
 class TensorBoard(Callback):
@@ -104,3 +106,7 @@ class TensorBoard(Callback):
             summary_value.tag = name
             self.writer.add_summary(summary, epoch)
         self.writer.flush()
+
+import math
+import numpy as np
+
