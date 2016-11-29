@@ -165,7 +165,6 @@ if __name__ =='__main__':
         cv2.imshow("After", img_copy)
         cv2.waitKey()
 
-        raw_input()
 
 #    import imageio
 #    vid = imageio.get_reader('../data/vatic_id2/output.avi')

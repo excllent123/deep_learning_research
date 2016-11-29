@@ -93,7 +93,7 @@ with tf.Session() as sess :
     epoch = 1
     while epoch < epoch_size:
         if epoch == 1:
-            model.load_weights('tf-keras-20161120.h5') 
+            model.load_weights('tf-keras-20161120-v2.h5') 
         else : 
             try:
                 model.load_weights('tf-keras-20161120-v2.h5')    
@@ -127,3 +127,6 @@ with tf.Session() as sess :
 
 # After 300+ addition eproch , tf-keras-20161120-v2.h5 achieve around 0.3~0.5 loss
 
+# Test Fail = > data parhser Bug
+
+# fixed bug retrain it  the loss is large
