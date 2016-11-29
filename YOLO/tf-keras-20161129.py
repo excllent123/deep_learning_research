@@ -64,7 +64,7 @@ loss = A.loss(true_y, pred_y, batch_size=batch_size) # tf-stle slice must have s
 #loss = tf.py_func(A.loss, true_y[0,:], pred_y[0,:])
 
 #train_step = tf.train.GradientDescentOptimizer(1e-1).minimize(loss)
-train_step = tf.train.RMSPropOptimizer(1e-7, momentum=0.1).minimize(loss)
+train_step = tf.train.RMSPropOptimizer(1e-12, momentum=0.9).minimize(loss)
 # Initializing the variables
 init = tf.global_variables_initializer()
 
@@ -76,12 +76,12 @@ with tf.Session() as sess :
     while epoch < epoch_size:
         if epoch == 1:
             try:
-                model.load_weights('../hub/model/{}-v2.h5'.format(model_name)) 
+                model.load_weights('../hub/model/{}-v3.h5'.format(model_name)) 
             except :
                 pass
         else : 
             try:
-                model.load_weights('../hub/model/{}-v3.h5'.format(model_name))   
+                model.load_weights('../hub/model/{}-v4.h5'.format(model_name))   
             except:
                 print ('NOT LOAD WEIGHT')
         step = 1
@@ -102,7 +102,7 @@ with tf.Session() as sess :
         epoch +=1
 
         try:
-            model.save_weights('../hub/model/{}-v3.h5'.format(model_name)) 
+            model.save_weights('../hub/model/{}-v4.h5'.format(model_name)) 
             print ('SAVE WEIGHT')
         except:
             print ('NOT SAVE')
@@ -117,3 +117,4 @@ with tf.Session() as sess :
 
 
 # v3 : 1e-3
+# batch 2 , 1e-6 then 1e-7
