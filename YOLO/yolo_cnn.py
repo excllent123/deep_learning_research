@@ -199,52 +199,52 @@ class YoloNetwork(object):
         model.add(Convolution2D(16, 3, 3, input_shape=(W,H,3), 
             border_mode='same' ))
 
-        model.add(BatchNormalization(mode=2))
+        model.add(BatchNormalization(mode=2, axis=3))
         model.add(LeakyReLU(alpha=0.1))
 
         model.add(MaxPooling2D(pool_size=(2, 2),border_mode='same' , 
             strides=(2,2)))
 
         model.add(Convolution2D(32,3,3,border_mode='same'))
-        model.add(BatchNormalization(mode=2))
+        model.add(BatchNormalization(mode=2,axis=3))
         model.add(LeakyReLU(alpha=0.1))
         model.add(MaxPooling2D(pool_size=(2, 2),border_mode='same' , 
             strides=(2,2)))
         
         model.add(Convolution2D(64,3,3,border_mode='same'))
-        model.add(BatchNormalization(mode=2))
+        model.add(BatchNormalization(mode=2,axis=3))
         model.add(LeakyReLU(alpha=0.1))
         model.add(MaxPooling2D(pool_size=(2, 2),border_mode='same' , 
             strides=(2,2)))
 
         model.add(Convolution2D(128,3,3,border_mode='same'))
-        model.add(BatchNormalization(mode=2))
+        model.add(BatchNormalization(mode=2,axis=3))
         model.add(LeakyReLU(alpha=0.1))
         model.add(MaxPooling2D(pool_size=(2, 2),border_mode='same' , 
             strides=(2,2)))
 
         model.add(Convolution2D(256,3,3,border_mode='same'))
-        model.add(BatchNormalization(mode=2))
+        model.add(BatchNormalization(mode=2,axis=3))
         model.add(LeakyReLU(alpha=0.1))
         model.add(MaxPooling2D(pool_size=(2, 2),border_mode='same' , 
             strides=(2,2)))
 
         model.add(Convolution2D(512,3,3,border_mode='same'))
-        model.add(BatchNormalization(mode=2))
+        model.add(BatchNormalization(mode=2,axis=3))
         model.add(LeakyReLU(alpha=0.1))
         model.add(MaxPooling2D(pool_size=(2, 2),border_mode='same' , 
             strides=(2,2)))
 
         model.add(Convolution2D(1024,3,3,border_mode='same'))
-        model.add(BatchNormalization(mode=2))
+        model.add(BatchNormalization(mode=2,axis=3))
         model.add(LeakyReLU(alpha=0.1))
 
         model.add(Convolution2D(1024,3,3,border_mode='same'))
-        model.add(BatchNormalization(mode=2))
+        model.add(BatchNormalization(mode=2,axis=3))
         model.add(LeakyReLU(alpha=0.1))
 
         model.add(Convolution2D(1024,3,3,border_mode='same'))
-        model.add(BatchNormalization(mode=2))
+        model.add(BatchNormalization(mode=2,axis=3))
         model.add(LeakyReLU(alpha=0.1))
 
         model.add(Flatten())
@@ -253,7 +253,7 @@ class YoloNetwork(object):
         model.add(BatchNormalization(mode=2))
         model.add(Dense(2048))
         #model.add(LeakyReLU(alpha=0.1))
-        model.add(Dropout(0.5))
+        model.add(Dropout(0.3))
         model.add(Dense(S*S*(5*B+C), activation='linear'))
 
         model.summary()

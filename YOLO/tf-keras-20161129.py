@@ -1,12 +1,6 @@
 import tensorflow as tf
-
-
 import keras.backend as K
 
-
-from keras.applications.resnet50 import ResNet50, preprocess_input
-from keras.applications.inception_v3 import InceptionV3
-from keras.applications.vgg16 import VGG16
 import numpy as np
 
 from keras.layers import Input
@@ -17,10 +11,10 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Sequential , Model
 
 from tf_yolo import YoloDetector
-# from yolo_cnn import YoloNetwork
+from yolo_cnn import YoloNetwork
 from yolo_preprocess import VaticPreprocess
 
-
+# =========================================
 W = 448
 H = 448
 S = 7
@@ -34,45 +28,27 @@ model_name = __file__.split('\\')[-1].split('.')[0]
 file_path = '../data_test/vatic_example.txt'
 maplist = ['Rhand', 'ScrewDriver']
 
+# =======================================
 
-true_y = tf.placeholder(tf.float32, shape = (None , S*S*(B*5+C)))
-
-
-
-# yolooo = YoloNetwork(C=C)
 A =      YoloDetector(C = C)
 processer = VaticPreprocess(file_path, maplist=maplist, detector=A)
 
+yolooo = YoloNetwork(C=C)
+model = yolooo.yolo_tiny_v2()
 
 # =======================================
-
-input_tensor = Input(shape=(H, W, 3))
-#base_model = ResNet50(input_tensor=input_tensor, include_top=False)
-#base_model = InceptionV3(input_tensor=input_tensor, include_top=False)
-base_model = VGG16(input_tensor=input_tensor, include_top=False)
-
-x = base_model.output
-# x = AveragePooling2D((8,8), strides=(8,8))(x)
-x = AveragePooling2D((7,7))(x) # for VGG16
-x = Flatten()(x)
-x = Dense(2048)(x)
-x = LeakyReLU(alpha=0.1)(x)
-#x = Dense(2048)(x)
-#x = LeakyReLU(alpha=0.1)(x)
-pred_y = Dense(S*S*(5*B+C), activation='linear')(x)
-
-# by pass the tf-style, to store weight in h5.py
-model = Model(base_model.input, pred_y)
-
-
 model_json = model.to_json()
 with open("../hub/model/{}.json".format(model_name), "w") as json_file:
     json_file.write(model_json)
     print ('saving model struct as ' + "../hub/model/{}.json".format(model_name))
 
-# # freeze base model layers
-for layer in base_model.layers:
-    layer.trainable = False
+# =======================================
+
+true_y = tf.placeholder(tf.float32, shape = (None , S*S*(B*5+C)))
+input_tensor = Input(shape=(H, W, 3))
+
+pred_y = model(input_tensor)
+
 
 
 def batch_check(x, batch_size):
@@ -85,11 +61,10 @@ def batch_check(x, batch_size):
 
 # where true_y [None, S*S*(B*5+C)]
 loss = A.loss(true_y, pred_y, batch_size=batch_size) # tf-stle slice must have same rank
-
 #loss = tf.py_func(A.loss, true_y[0,:], pred_y[0,:])
 
 # train_step = tf.train.GradientDescentOptimizer(0.001).minimize(loss)
-train_step = tf.train.RMSPropOptimizer(1e-3, momentum=0.01).minimize(loss)
+train_step = tf.train.RMSPropOptimizer(1e-5, momentum=0.5).minimize(loss)
 # Initializing the variables
 init = tf.initialize_all_variables()
 
@@ -100,12 +75,12 @@ with tf.Session() as sess :
     while epoch < epoch_size:
         if epoch == 1:
             try:
-                model.load_weights('tf-keras-20161125-v7.h5') 
+                model.load_weights('../hub/model/{}.h5'.format(model_name)) 
             except :
                 pass
         else : 
             try:
-                model.load_weights('tf-keras-20161125-v7.h5')    
+                model.load_weights('../hub/model/{}.h5'.format(model_name))   
             except:
                 print ('NOT LOAD WEIGHT')
         step = 1
@@ -126,16 +101,13 @@ with tf.Session() as sess :
         epoch +=1
 
         try:
-            model.save_weights('tf-keras-20161125-v7.h5')
+            model.save_weights('../hub/model/{}.h5'.format(model_name)) 
             print ('SAVE WEIGHT')
         except:
             print ('NOT SAVE')
 
 
-# V5 is 16~20 eaul to V4
-# since get stuck at local minimux => add learning rate to 0.00001 for V6
-# After retrain with large and fine tune with 1e-5, 210 all weight is performed equaliy 
-# 20~30 
-
-# shift to V7 with 1e-3
+# logger 
+# Due to the tf-keras-20161125 => since to have fixed output 
+# 
 
