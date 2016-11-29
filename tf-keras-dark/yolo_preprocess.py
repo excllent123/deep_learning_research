@@ -10,12 +10,6 @@ import cv2
 # This is a script that manipulate the data from vatic-data to yolo setting
 #==============================================================================
 
-
-class ImagePreprocess(object):
-    def __init__(self):
-        pass
-
-
 class VaticPreprocess(object):
 
     def __init__(self, fileName, maplist, detector=None):
@@ -58,10 +52,10 @@ class VaticPreprocess(object):
             if scale_factor:
                 assert len(scale_factor)==2
                 scale_x, scale_y = scale_factor
-                cX*=scale_y
-                cY*=scale_x
-                boxW*=scale_x
-                boxH*=scale_y
+                cX*=scale_x
+                cY*=scale_y
+                boxW*=scale_y
+                boxH*=scale_x
             # It works
             # ======================
 
@@ -99,8 +93,8 @@ class VaticPreprocess(object):
             h,w,c = frame.shape
             if w != 448 or h!=448:
                 frame = cv2.resize(frame, (448, 448))
-                scale_x = (448.0/w)
-                scale_y = (448.0/h)
+                scale_x = (448.0/h)
+                scale_y = (448.0/w)
                 annotations = self.get_annotation(frameID, scale_factor=(scale_x, scale_y))
             else:
                 annotations = self.get_annotation(frameID)
