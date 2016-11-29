@@ -2,7 +2,7 @@ import tensorflow as tf
 
 
 import keras.backend as K
-
+from keras.utils import generic_utils
 
 from keras.applications.resnet50 import ResNet50, preprocess_input
 from keras.applications.inception_v3 import InceptionV3
@@ -89,7 +89,7 @@ loss = A.loss(true_y, pred_y, batch_size=batch_size) # tf-stle slice must have s
 #loss = tf.py_func(A.loss, true_y[0,:], pred_y[0,:])
 
 # train_step = tf.train.GradientDescentOptimizer(0.001).minimize(loss)
-train_step = tf.train.RMSPropOptimizer(1e-3, momentum=0.01).minimize(loss)
+train_step = tf.train.RMSPropOptimizer(1e-2, momentum=0.01).minimize(loss)
 # Initializing the variables
 init = tf.initialize_all_variables()
 

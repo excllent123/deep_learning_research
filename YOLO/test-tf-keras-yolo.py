@@ -36,6 +36,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--frameid',  type=int)
 parser.add_argument('-t', '--threshold', type=float)
 parser.add_argument('-w', '--weight_file', type=str)
+parser.add_argument('-j', '--json_file',type=str)
 arg=parser.parse_args()
 
 # ===========================================================
@@ -43,9 +44,9 @@ arg=parser.parse_args()
 vid = imageio.get_reader('../data/vatic_id2/output.avi')
 
 frameid = arg.frameid if (arg.frameid and arg.frameid< vid.get_length ) else 600
-threshold = arg.threshold if (arg.threshold and arg.threshold < 1) else 1e-25
+threshold = arg.threshold if (arg.threshold and arg.threshold < 1) else 0.2
 weight_file = arg.weight_file if arg.weight_file else 'tf-keras-20161125-v7.h5'
-
+json_file = arg.json_file if arg.json_file else '../hub/model/tf-keras-20161120.json'
 file_path = '../data_test/vatic_example.txt'
 maplist = ['Rhand', 'ScrewDriver']
 W=448
@@ -79,54 +80,48 @@ def get_model(jsonPath):
     return model 
 
 
-TFmodel = get_model(jsonPath='../hub/model/tf-keras-20161120.json')
+TFmodel = get_model(jsonPath=json_file)
 
 
-img = vid.get_data(frameid)
-img = cv2.resize(img, (H, W))    
-test_img = get_test_img(img)
-print ('============================')
-print (TFmodel.predict(test_img)).shape
-print ('============================')
+# img = vid.get_data(frameid)
+# img = cv2.resize(img, (H, W))    
+# test_img = get_test_img(img)
+# print ('============================')
+# print (TFmodel.predict(test_img)).shape
+# print ('============================')
 
 
 # ====================================================================
 
 input_tensor = Input(shape=(H, W, 3))
 
+#base_model = VGG16(input_tensor=input_tensor, include_top=False)#
 
-#base_model = ResNet50(input_tensor=input_tensor, include_top=False)
-#base_model = InceptionV3(input_tensor=input_tensor, include_top=False)
-base_model = VGG16(input_tensor=input_tensor, include_top=False)
+#x = base_model.output#
 
-x = base_model.output
-# x = AveragePooling2D((8,8), strides=(8,8))(x)
-x = AveragePooling2D((7,7))(x) # for VGG16
-x = Flatten()(x)
-x = Dense(2048)(x)
-x = LeakyReLU(alpha=0.1)(x)
+#x = AveragePooling2D((7,7))(x) # for VGG16
+#x = Flatten()(x)
 #x = Dense(2048)(x)
 #x = LeakyReLU(alpha=0.1)(x)
-pred_y = Dense(S*S*(5*B+C), activation='linear')(x)
+#pred_y = Dense(S*S*(5*B+C), activation='linear')(x)#
+#
 
-
-model = Model(base_model.input, pred_y)
+# model = Model(base_model.input, pred_y)
 
 # ====================================================================
+input_tensor = Input(shape=(H, W, 3))
 
-#input_tensor = Input(shape=(H, W, 3))
+pred_y = TFmodel(input_tensor)
 
-#y = TFmodel(input_tensor)
-
-init = tf.initialize_all_variables()
+init = tf.global_variables_initializer()
 
 
 
 with tf.Session() as sess : 
     sess.run(init)
 
-    model.load_weights(weight_file)
-    # TFmodel.load_weights(weight_file)
+    #model.load_weights(weight_file)
+    TFmodel.load_weights(weight_file)
     while frameid<vid.get_length():
         img = vid.get_data(frameid)
         img = cv2.resize(img, (H, W))    
