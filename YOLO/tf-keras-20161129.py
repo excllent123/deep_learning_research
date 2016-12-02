@@ -13,6 +13,7 @@ from keras.models import Sequential , Model
 from tf_yolo import YoloDetector
 from yolo_cnn import YoloNetwork
 from yolo_preprocess import VaticPreprocess
+from tf_keras_board import get_summary_op
 
 # =========================================
 W = 448
@@ -27,6 +28,7 @@ epoch_size = 2500
 model_name = __file__.split('\\')[-1].split('.')[0]
 file_path = '../data_test/vatic_example.txt'
 maplist = ['Rhand', 'ScrewDriver']
+log_dir = '../hub/tf_logger'
 
 # =======================================
 
@@ -64,26 +66,29 @@ loss = A.loss(true_y, pred_y, batch_size=batch_size) # tf-stle slice must have s
 #loss = tf.py_func(A.loss, true_y[0,:], pred_y[0,:])
 
 #train_step = tf.train.GradientDescentOptimizer(1e-1).minimize(loss)
-train_step = tf.train.RMSPropOptimizer(1e-12, momentum=0.9).minimize(loss)
+train_step = tf.train.RMSPropOptimizer(1e-8, momentum=0.9).minimize(loss)
 # Initializing the variables
+summary_op = get_summary_op(model, loss)
+
 init = tf.global_variables_initializer()
 
+MIN_LOSS = 9999
 with tf.Session() as sess : 
     sess.run(init)
-    SUM_LOSS= 0
+    
+
+    writer = tf.train.SummaryWriter(log_dir, tf.get_default_graph())
     # test mode
     epoch = 1
     while epoch < epoch_size:
+        SUM_LOSS= 0
         if epoch == 1:
             try:
-                model.load_weights('../hub/model/{}-v3.h5'.format(model_name)) 
+                model.load_weights('../hub/model/{}-v6.h5'.format(model_name)) 
             except :
                 pass
         else : 
-            try:
-                model.load_weights('../hub/model/{}-v4.h5'.format(model_name))   
-            except:
-                print ('NOT LOAD WEIGHT')
+            pass
         step = 1
         DATAFLOW = processer.genYOLO_foler_batch('../data/vatic_id2', batch_size=batch_size)
         for images_feed, labels_feed in DATAFLOW :
@@ -93,19 +98,26 @@ with tf.Session() as sess :
             sess.run(train_step, feed_dict = 
             	{input_tensor : images_feed, true_y :labels_feed, K.learning_phase(): 0})    
 
-            if step % 10 ==0:
-                lossN  =  sess.run([loss], feed_dict = 
-                    {input_tensor : images_feed, true_y :labels_feed, K.learning_phase(): 1})
-                print ('EP [{}] Iter {} Loss {}'.format(epoch,step, lossN))    
-
+            lossN = sess.run(loss, feed_dict = 
+                {input_tensor : images_feed, true_y :labels_feed, K.learning_phase(): 0}) 
+            
+            SUM_LOSS+=lossN
+            #writer.add_summary(summary, epoch*step)
             step+=1
-        epoch +=1
 
-        try:
-            model.save_weights('../hub/model/{}-v4.h5'.format(model_name)) 
+
+        SUM_LOSS = SUM_LOSS/(batch_size*step)
+
+        
+        print ('EP [{}] Iter {} Loss {}'.format(epoch,step,SUM_LOSS ))
+        MIN_LOSS = min(SUM_LOSS, MIN_LOSS)
+        if SUM_LOSS<=MIN_LOSS:
+            
+            model.save_weights('../hub/model/{}-v7.h5'.format(model_name)) 
             print ('SAVE WEIGHT')
-        except:
+        else:
             print ('NOT SAVE')
+        epoch +=1
 
 
 # logger 
@@ -118,3 +130,9 @@ with tf.Session() as sess :
 
 # v3 : 1e-3
 # batch 2 , 1e-6 then 1e-7
+
+# Code Modification 
+# v4 : 1e16 
+# v5 : 720EP 8.10 loss
+# v6 : 7.5
+# v7 : take 
