@@ -57,5 +57,5 @@ Thumbs.db
 *.h5
 *.pkl
 *.gz
-
+*.weight
 *.ckpt*
