@@ -95,14 +95,12 @@ with tf.Session() as sess :
             images_feed = batch_check(np.asarray(images_feed), batch_size)
             labels_feed = batch_check(np.asarray(labels_feed), batch_size)    
 
-            sess.run(train_step, feed_dict = 
+            _, lossN, summary_log = sess.run([train_step,loss,summary_op], feed_dict = 
             	{input_tensor : images_feed, true_y :labels_feed, K.learning_phase(): 0})    
 
-            lossN = sess.run(loss, feed_dict = 
-                {input_tensor : images_feed, true_y :labels_feed, K.learning_phase(): 0}) 
             
             SUM_LOSS+=lossN
-            #writer.add_summary(summary, epoch*step)
+            writer.add_summary(summary_log, epoch*step)
             step+=1
 
 
