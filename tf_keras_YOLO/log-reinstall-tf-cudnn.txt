@@ -1,0 +1,43 @@
+  548  sudo ~/anaconda2/bin/pip show tensorflow
+  549  sudo ~/anaconda2/bin/pip uninstall tensorflow
+  550  python sct-run-20161111.py 
+  551  cd ~/github/
+  552  sudo apt-get install software-properties-common swig
+  553  sudo add-apt-repository ppa:webupd8team/java
+  554  sudo apt-get update
+  555  sudo apt-get install oracle-java8-installer
+  556  echo "deb http://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+  557  curl https://storage.googleapis.com/bazel-apt/doc/apt-key.pub.gpg | sudo apt-key add -
+  558  sudo apt-get update
+  559  sudo apt-get install baze;
+  560  sudo apt-get install bazel
+  561  git clone https://github.com/tensorflow/tensorflow
+  562  cd tensorflow/
+  563  git reset --hard 70de76e
+  564  ./configure 
+  565  bazel build -c opt --config=cuda //tensorflow/tools/pip_package:build_pip_package
+  566  bazel clean
+  567  ./configure 
+  568  bazel build -c opt --config=cuda //tensorflow/tools/pip_package:build_pip_package
+  569  cd ..
+  570  rm -rf tensorflow/
+  571  git clone https://github.com/tensorflow/tensorflow
+  572  cd tensorflow/
+  573  ./configure 
+  574  bazel build -c opt --config=cuda //tensorflow/tools/pip_package:build_pip_package
+  575  sudo ~/anaconda2/bin/pip install /tmp/tensorflow_pkg/tensorflow
+  576  sudo ~/anaconda2/bin/pip install --upgrade /tmp/tensorflow_pkg/tensorflow
+  577  bazel build -c opt --config=cuda //tensorflow/tools/pip_package:build_pip_package
+  578  sudo ~/anaconda2/bin/pip install /tmp/tensorflow_pkg/tensorflow
+  579  sudo ~/anaconda2/bin/pip install --upgrade /tmp/tensorflow_pkg/tensorflow
+  580  cd ~
+  581  python
+  582  bazel build -c opt --config=cuda //tensorflow/tools/pip_package:build_pip_package
+  583  cd github/
+  584  cd tensorflow/
+  585  bazel build -c opt --config=cuda //tensorflow/tools/pip_package:build_pip_package
+  586  ls
+  587  sudo ~/anaconda2/bin/pip install ~/github/tensorflow/bazel-bin/tensorflow/tools/pip_package/
+  588  sudo ~/anaconda2/bin/pip install ~/github/tensorflow/bazel-bin/tensorflow/tools/pip_package/build_pip_package
+  589  bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
+  590  sudo ~/anaconda2/bin/pip install /tmp/tensorflow_pkg/tensorflow-0.11.0rc2-cp27-cp27mu-linux_x86_64.whl 
