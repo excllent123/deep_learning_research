@@ -1,4 +1,5 @@
-#! /home/kent/anaconda2/bin/python
+#! /usr/bin/env python
+# /usr/bin/env python
 # This script let you to search the title of the article in the folder
 #
 
