@@ -28,7 +28,7 @@ epoch_size = 2500
 model_name = __file__.split('\\')[-1].split('.')[0]
 file_path = '../data_test/vatic_example.txt'
 maplist = ['Rhand', 'ScrewDriver']
-log_dir = '../hub/tf_logger'
+log_dir = '../hub/logger_{}'.format(model_name)
 
 # =======================================
 
@@ -66,7 +66,7 @@ loss = A.loss(true_y, pred_y, batch_size=batch_size) # tf-stle slice must have s
 #loss = tf.py_func(A.loss, true_y[0,:], pred_y[0,:])
 
 #train_step = tf.train.GradientDescentOptimizer(1e-1).minimize(loss)
-train_step = tf.train.RMSPropOptimizer(1e-8, momentum=0.9).minimize(loss)
+train_step = tf.train.RMSPropOptimizer(1e-10, momentum=0.9).minimize(loss)
 # Initializing the variables
 summary_op = get_summary_op(model, loss)
 
@@ -84,7 +84,7 @@ with tf.Session() as sess :
         SUM_LOSS= 0
         if epoch == 1:
             try:
-                model.load_weights('../hub/model/{}-v6.h5'.format(model_name)) 
+                model.load_weights('../hub/model/{}-v1.h5'.format(model_name)) 
             except :
                 pass
         else : 
@@ -111,7 +111,7 @@ with tf.Session() as sess :
         MIN_LOSS = min(SUM_LOSS, MIN_LOSS)
         if SUM_LOSS<=MIN_LOSS:
             
-            model.save_weights('../hub/model/{}-v7.h5'.format(model_name)) 
+            model.save_weights('../hub/model/{}-v2.h5'.format(model_name)) 
             print ('SAVE WEIGHT')
         else:
             print ('NOT SAVE')
@@ -120,17 +120,6 @@ with tf.Session() as sess :
 
 # logger 
 # Due to the tf-keras-20161125 => since to have fixed output 
-# init 1e-5 momentum = 0.1 batch_size=1
-# 1e-7 ~around 25~35
+# init 1e-8 momentum = 0.9 batch_size=2
+# 1e-7 ~a8ound 20
 
-# v2 weight
-
-
-# v3 : 1e-3
-# batch 2 , 1e-6 then 1e-7
-
-# Code Modification 
-# v4 : 1e16 
-# v5 : 720EP 8.10 loss
-# v6 : 7.5
-# v7 : take 
