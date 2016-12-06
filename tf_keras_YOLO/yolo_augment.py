@@ -33,13 +33,14 @@ def imcv2_affine_trans(im):
 	return im, [w, h, c], [scale, [offx, offy], flip]
 
 def linearOP(pt, scale, off):
-	return int(pt*scale-off)
+	return max(int(pt*scale-off),0)
 
 def affine_trains(im, ann):
 	'''
 	ann : [[classid, int(cX), int(cY), int(boxW), int(boxH)]]
 	'''
 
+	# image operation
 	h, w, c = im.shape
 	scale = np.random.uniform() / 10. + 1.
 	max_offx = (scale-1.) * w
@@ -51,6 +52,7 @@ def affine_trains(im, ann):
 	flip = np.random.binomial(1, .5)
 	if flip: im = cv2.flip(im, 1)
 	
+	# annotation operation
 	new_ann = []
 	for classid , cx, cy, W, H in ann :
 		x_min, x_max = int(cx-0.5*H), int(cx+0.5*H)
@@ -73,6 +75,9 @@ def affine_trains(im, ann):
 
 
 if __name__=='__main__':
+	'''
+	self-level testing
+	'''
     from skimage.io import imread
     from yolo_preprocess import VaticPreprocess
 
@@ -88,7 +93,6 @@ if __name__=='__main__':
 
         img2, bb, cc = imcv2_affine_trans(recolor(img))
 
-        print bb, cc
 
         cv2.imshow('Affine' , img2)
         cv2.imshow('Ref.' , img_ref)

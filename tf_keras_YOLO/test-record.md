@@ -12,7 +12,7 @@ found out that type-failure in loss function
 need to shift numpy-loss to tf-loss
 
 ### tf-yolo.py (2016-11-12)
-implement the tf-loss
+implement the tf-loss to solve the above problem
 test-pass
 
 
@@ -40,6 +40,22 @@ modification of the yolo-preprocessor
 now need to add detector explicitly 
 
 ### test tensorflow saving mechnism => keep find no file 
-????????????
-UNSOVLE
-????????????
+Better to when you saving with ckpt, it would auto-add **-1** or **-2**  
+save_path = saver.save(sess, "../hub/model/20161118.ckpt",global_step=epoch )
+saver.restore(sess, "../hub/model/20161118.ckpt-{}".format(epoch))
+
+
+### Training 
+- tf-keras-20161125.py
+- tf-keras-20151129.py
+add recoler (color jitter) 
+
+### Add testing-sct : test-tf-keras-yolo.py
+
+### Add Tensorboard Wrap with tf-keras
+- tf-keras-board.py
+
+### Add Data Augmentation with Affine and horizontal flip
+this horizontal flip and a liitle bit scale and shift helps yolo to prevent overfit on position.
+
+
