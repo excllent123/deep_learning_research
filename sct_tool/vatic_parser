@@ -1,4 +1,6 @@
-#==============================================================================
+#! /usr/bin/env python
+
+#=============================================================================
 # Author : Kent Chiu (kentchun33333@gmail.com)
 #==============================================================================
 # Notice
@@ -94,7 +96,7 @@ if __name__ == '__main__':
 
     # imsave bg
     for _, img in enumerate(gen_bg(vid, df)):
-        tarFolder = arg['output']+'\\BG\\'
+        tarFolder = arg['output']+'/BG/'
         if not os.path.isdir(tarFolder):
             os.makedirs(tarFolder)
         imsave(tarFolder+str(_)+'.png',img)
@@ -103,7 +105,7 @@ if __name__ == '__main__':
     for label in labels:
         for _, img in enumerate(gen_pos(vid, df, label)):
             label_folder = label.replace('"',"").split('\n')[0]
-            tarFolder = arg['output']+'\\{}\\'.format(label_folder)
+            tarFolder = arg['output']+'/{}/'.format(label_folder)
 
             if not os.path.isdir(tarFolder):
                 os.makedirs(tarFolder)
