@@ -1,7 +1,6 @@
 
 
-hub/tf_logger/
-hub/yolo_weight/
+hub_logger/
 
 ###################
 # Compiled source #
