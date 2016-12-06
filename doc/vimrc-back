@@ -21,6 +21,10 @@ Plugin 'VundleVim/Vundle.vim'
 
 Plugin 'tpope/vim-fugitive'
 
+
+"
+Plugin 'terryma/vim-multiple-cursors'
+
 "filesystem
 
 Plugin 'scrooloose/nerdtree'
@@ -89,7 +93,9 @@ map <leader>g :YcmCompleter GoToDefinitionElseDeclaration<CR>
 
 let NERDTreeIgnore=['\.pyc$', '\~$'] "ignore files in NERDTree
 
-map <C-n> :NERDTreeToggle<CR>
+map <C-f> :NERDTreeToggle<CR>
+
+let g:multi_cursor_next_key='<C-n>'
 
 "I don't like swap files
 
