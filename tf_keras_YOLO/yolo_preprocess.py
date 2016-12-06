@@ -85,7 +85,6 @@ class VaticPreprocess(object):
 
             frameID = filename.split('.')[0]
             frame = imread(os.path.join(folder, filename))
-            frame = yolo_augment.imcv2_recolor(frame)
             frame *= int(255.0/frame.max())    # Uses 1 division and image.size multiplications
 
             # === This Section Shoud Be Refractoried ===
@@ -98,6 +97,10 @@ class VaticPreprocess(object):
                 annotations = self.get_annotation(frameID, scale_factor=(scale_x, scale_y))
             else:
                 annotations = self.get_annotation(frameID)
+
+            # Real Time Data Augmentation
+            frame = yolo_augment.recolor(frame)
+            frame, annotations = yolo_augment.affine_trains(frame, annotations)
 
             # === END ===
 
