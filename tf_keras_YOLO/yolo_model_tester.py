@@ -1,30 +1,12 @@
 import tensorflow as tf
-
-
 import keras.backend as K
-
-
-from keras.applications.resnet50 import ResNet50, preprocess_input
-from keras.applications.inception_v3 import InceptionV3
-from keras.applications.vgg16 import VGG16
-import numpy as np
-
 from keras.layers import Input
-
-from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D, AveragePooling2D
-from keras.layers.core import Activation, Flatten, Dropout, Dense
-from keras.layers.advanced_activations import LeakyReLU
-from keras.models import Sequential , Model
-
 from yolo_layer import YoloDetector
-# from yolo_cnn import YoloNetwork
 from yolo_preprocess import VaticPreprocess
-
 import imageio
 import cv2
 import numpy as np
 from keras.models import model_from_json
-
 
 # ================================
 # Set you parameters by config
@@ -32,6 +14,7 @@ from keras.models import model_from_json
 import argparse
 
 # ==========================================================
+# get the parameters
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--frameid',  type=int)
 parser.add_argument('-t', '--threshold', type=float)
@@ -41,15 +24,22 @@ parser.add_argument('-v', '--vid_path',type=str)
 arg=parser.parse_args()
 
 # ===========================================================
-#vid = imageio.get_reader('~/data/10.167.10.159_01_20160121083216799_2.mp4')
+# initialize the parameters
+
+threshold   = arg.threshold if (arg.threshold and arg.threshold < 1) else 0.2
+
+weight_file = arg.weight_file if arg.weight_file else 'tf-keras-20161125-v7.h5'
+
+json_file   = arg.json_file if arg.json_file else '../hub/model/tf-keras-20161120.json'
+
+vid_path    = arg.vid_path if arg.vid_path else '../hub_data/vatic/vatic_id2/output.avi'
+
+vid  = imageio.get_reader(vid_path)
 
 frameid = arg.frameid if (arg.frameid and arg.frameid< vid.get_length ) else 600
-threshold = arg.threshold if (arg.threshold and arg.threshold < 1) else 0.2
-weight_file = arg.weight_file if arg.weight_file else 'tf-keras-20161125-v7.h5'
-json_file = arg.json_file if arg.json_file else '../hub/model/tf-keras-20161120.json'
-vid_path = arg.vid_path if arg.vid_path else '../hub_data/vatic/vatic_id2/output.avi'
 
-vid = imageio.get_reader(vid_path)
+
+
 file_path = '../data_test/vatic_example.txt'
 maplist = ['Rhand', 'ScrewDriver']
 
@@ -86,45 +76,24 @@ def get_model(jsonPath):
 
 TFmodel = get_model(jsonPath=json_file)
 
-
+# =====================================
+# Alternative way
 # img = vid.get_data(frameid)
 # img = cv2.resize(img, (H, W))
 # test_img = get_test_img(img)
-# print ('============================')
 # print (TFmodel.predict(test_img)).shape
-# print ('============================')
-
-
 # ====================================================================
 
-input_tensor = Input(shape=(H, W, 3))
-
-#base_model = VGG16(input_tensor=input_tensor, include_top=False)#
-
-#x = base_model.output#
-
-#x = AveragePooling2D((7,7))(x) # for VGG16
-#x = Flatten()(x)
-#x = Dense(2048)(x)
-#x = LeakyReLU(alpha=0.1)(x)
-#pred_y = Dense(S*S*(5*B+C), activation='linear')(x)#
-#
-
-# model = Model(base_model.input, pred_y)
-
-# ====================================================================
 input_tensor = Input(shape=(H, W, 3))
 
 pred_y = TFmodel(input_tensor)
 
 init = tf.global_variables_initializer()
 
-
-
 with tf.Session() as sess :
     sess.run(init)
 
-    #model.load_weights(weight_file)
+    # this is the beauty of keras
     TFmodel.load_weights(weight_file)
     while frameid<vid.get_length():
         img = vid.get_data(frameid)
@@ -133,7 +102,6 @@ with tf.Session() as sess :
 
         output_tensor = sess.run(pred_y, feed_dict =
                 {input_tensor : test_img, K.learning_phase(): 0})
-
 
         bbx = yolo_detect.decode(output_tensor[0,:], threshold=threshold)
         print (bbx)

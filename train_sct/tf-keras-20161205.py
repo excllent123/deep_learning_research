@@ -13,6 +13,12 @@ from tf_keras_YOLO.yolo_cnn import YoloNetwork
 from tf_keras_YOLO.yolo_preprocess import VaticPreprocess
 from tf_keras_YOLO.tf_keras_board import get_summary_op
 
+
+flags = tf.flags
+flags.DEFINE_float('learning_rate', 1e-7, 'Initial learning rate.')
+flags.DEFINE_integer('max_steps', 2000, 'Number of steps to run trainer.')
+FLAGS = flags.FLAGS
+
 # =========================================
 W = 448
 H = 448
@@ -64,7 +70,7 @@ loss = A.loss(true_y, pred_y, batch_size=batch_size) # tf-stle slice must have s
 #loss = tf.py_func(A.loss, true_y[0,:], pred_y[0,:])
 
 #train_step = tf.train.GradientDescentOptimizer(1e-1).minimize(loss)
-train_step = tf.train.RMSPropOptimizer(1e-7, momentum=0.9).minimize(loss)
+train_step = tf.train.RMSPropOptimizer(FLAGS.learning_rate, momentum=0.9).minimize(loss)
 # Initializing the variables
 summary_op = get_summary_op(model, loss)
 
@@ -75,14 +81,14 @@ with tf.Session() as sess :
     sess.run(init)
 
 
-    writer = tf.train.SummaryWriter(log_dir, tf.get_default_graph())
+    writer = tf.summary.FileWriter(log_dir, tf.get_default_graph())
     # test mode
     epoch = 1
     while epoch < epoch_size:
         SUM_LOSS= 0
         if epoch == 1:
             try:
-                model.load_weights('../hub_model/{}-v1.h5'.format(model_name))
+                model.load_weights('../hub_model/{}-v2.h5'.format(model_name))
             except :
                 pass
         else :
@@ -109,11 +115,12 @@ with tf.Session() as sess :
         MIN_LOSS = min(SUM_LOSS, MIN_LOSS)
         if SUM_LOSS<=MIN_LOSS:
 
-            model.save_weights('../hub_model/{}-v1.h5'.format(model_name))
+            model.save_weights('../hub_model/{}-v2.h5'.format(model_name))
             print ('SAVE WEIGHT')
         else:
             print ('NOT SAVE')
         epoch +=1
 
-
+# v1 ~ loss = 19
+# start training v2 with 0.0001 FAIL ===> 1e-7 
 
