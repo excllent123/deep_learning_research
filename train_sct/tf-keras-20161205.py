@@ -8,12 +8,6 @@ import numpy as np
 
 from keras.layers import Input
 
-from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D, AveragePooling2D
-from keras.layers.core import Activation, Flatten, Dropout, Dense
-from keras.layers.advanced_activations import LeakyReLU
-from keras.models import Sequential , Model
-
-from tf_keras_YOLO.yolo_layer.py import YoloDetector
 from tf_keras_YOLO.yolo_layer import YoloDetector
 from tf_keras_YOLO.yolo_cnn import YoloNetwork
 from tf_keras_YOLO.yolo_preprocess import VaticPreprocess
@@ -30,9 +24,9 @@ batch_size = 2
 epoch_size = 2500
 
 model_name = __file__.split('\\')[-1].split('.')[0]
-file_path = '../data_test/vatic_example.txt'
+file_path = '../hub_data/vatic/vatic_id2/example_off_withSave4.txt'
 maplist = ['Rhand', 'ScrewDriver']
-log_dir = '../hub/logger_{}'.format(model_name)
+log_dir = '../hub_logger/{}'.format(model_name)
 
 # =======================================
 
@@ -44,9 +38,9 @@ model = yolooo.yolo_tiny_v2()
 
 # =======================================
 model_json = model.to_json()
-with open("../hub/model/{}.json".format(model_name), "w") as json_file:
+with open("../hub_model/{}.json".format(model_name), "w") as json_file:
     json_file.write(model_json)
-    print ('saving model struct as ' + "../hub/model/{}.json".format(model_name))
+    print ('saving model struct as ' + "../hub_model/{}.json".format(model_name))
 
 # =======================================
 
@@ -70,7 +64,7 @@ loss = A.loss(true_y, pred_y, batch_size=batch_size) # tf-stle slice must have s
 #loss = tf.py_func(A.loss, true_y[0,:], pred_y[0,:])
 
 #train_step = tf.train.GradientDescentOptimizer(1e-1).minimize(loss)
-train_step = tf.train.RMSPropOptimizer(1e-10, momentum=0.9).minimize(loss)
+train_step = tf.train.RMSPropOptimizer(1e-7, momentum=0.9).minimize(loss)
 # Initializing the variables
 summary_op = get_summary_op(model, loss)
 
@@ -88,13 +82,13 @@ with tf.Session() as sess :
         SUM_LOSS= 0
         if epoch == 1:
             try:
-                model.load_weights('../hub/model/{}-v1.h5'.format(model_name))
+                model.load_weights('../hub_model/{}-v1.h5'.format(model_name))
             except :
                 pass
         else :
             pass
         step = 1
-        DATAFLOW = processer.genYOLO_foler_batch('../data/vatic_id2', batch_size=batch_size)
+        DATAFLOW = processer.genYOLO_foler_batch('../hub_data/vatic/vatic_id2', batch_size=batch_size)
         for images_feed, labels_feed in DATAFLOW :
             images_feed = batch_check(np.asarray(images_feed), batch_size)
             labels_feed = batch_check(np.asarray(labels_feed), batch_size)
@@ -115,15 +109,11 @@ with tf.Session() as sess :
         MIN_LOSS = min(SUM_LOSS, MIN_LOSS)
         if SUM_LOSS<=MIN_LOSS:
 
-            model.save_weights('../hub/model/{}-v2.h5'.format(model_name))
+            model.save_weights('../hub_model/{}-v1.h5'.format(model_name))
             print ('SAVE WEIGHT')
         else:
             print ('NOT SAVE')
         epoch +=1
 
 
-# logger
-# Due to the tf-keras-20161125 => since to have fixed output
-# init 1e-8 momentum = 0.9 batch_size=2
-# 1e-7 ~a8ound 20
 

@@ -75,9 +75,7 @@ def affine_trains(im, ann):
 
 
 if __name__=='__main__':
-	'''
-	self-level testing
-	'''
+    '''self-level testing'''
     from skimage.io import imread
     from yolo_preprocess import VaticPreprocess
 
