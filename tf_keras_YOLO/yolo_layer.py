@@ -12,7 +12,7 @@ import tensorflow as tf
 
 
 class YoloDetector(Layer):
-    def __init__(self, C=20, rImgW=448, rImgH=448, S=7, B=2):
+    def __init__(self, C=20, rImgW=448, rImgH=448, S=7, B=2, classMap=None):
         # C = number of class
         self.S = S
         self.B = B
@@ -20,7 +20,10 @@ class YoloDetector(Layer):
         self.W = rImgW
         self.H = rImgH
         self.iou_threshold=0.1
-        self.classMap  =  ["aeroplane", "bicycle", "bird", "boat", "bottle", 
+        if classMap:
+            self.classMap = classMap
+        else :
+            self.classMap  =  ["aeroplane", "bicycle", "bird", "boat", "bottle", 
                            "bus", "car", "cat", "chair", "cow", "diningtable",
                            "dog", "horse", "motorbike", "person", "pottedplant",
                            "sheep", "sofa", "train","tvmonitor"]

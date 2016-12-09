@@ -58,7 +58,6 @@ yolo_detect.set_class_map(maplist)
 def get_test_img(img, W=448, H=448):
 
     h,w,c = img.shape
-    print h
     if h!=H or w!=W:
         img = cv2.resize(img, (H, W))
     img = np.resize(img,[1,H,W,c])

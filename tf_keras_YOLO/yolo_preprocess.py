@@ -85,7 +85,6 @@ class VaticPreprocess(object):
 
             frameID = filename.split('.')[0]
             frame = imread(os.path.join(folder, filename))
-            frame *= int(255.0/frame.max())    # Uses 1 division and image.size multiplications
 
             # === This Section Shoud Be Refractoried ===
 
@@ -135,14 +134,14 @@ class VaticPreprocess(object):
 
 
 if __name__ =='__main__':
-    file_path = '../data_test/vatic_example.txt'
+    file_path = '../hub_data/vatic/vatic_id2/ann.txt'
     maplist = ['Rhand', 'ScrewDriver']
     yoloProcessor = VaticPreprocess(file_path, maplist=maplist)
     import cv2
     import numpy as np
 
     #B = yoloProcessor.genYOLO_vid(vid)
-    C = yoloProcessor.genYOLO_foler_batch('../data/vatic_id2')
+    C = yoloProcessor.genYOLO_foler_batch('../hub_data/vatic/vatic_id2')
 
     for x, y in C:
         x = np.asarray(x)

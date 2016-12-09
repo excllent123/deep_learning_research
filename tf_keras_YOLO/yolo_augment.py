@@ -61,14 +61,14 @@ def affine_trains(im, ann):
 		x_min, x_max = linearOP(x_min,scale,offx), linearOP(x_max,scale,offx)
 		y_min, y_max = linearOP(y_min,scale,offx), linearOP(y_max,scale,offx)
 		if flip: 
-			x_max_ = x_max
-			x_max = h- x_min 
-			x_min = h- x_max_
+			y_max_ = y_max
+			y_max = w- y_min 
+			y_min = w- y_max_
 
-		cY   = (int(x_min)+int(x_max))/2
-		cX   = (int(y_min)+int(y_max))/2
-		boxW = int(x_max) - int(x_min)
-		boxH = int(y_max) - int(y_min)
+		cX   = (int(x_min)+int(x_max))/2
+		cY   = (int(y_min)+int(y_max))/2
+		boxH = int(x_max) - int(x_min)
+		boxW = int(y_max) - int(y_min)
 		new_ann.append([classid, int(cX), int(cY), int(boxW), int(boxH)])
 	return im, new_ann
 
