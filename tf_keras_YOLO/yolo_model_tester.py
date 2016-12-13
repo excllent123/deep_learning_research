@@ -61,6 +61,7 @@ def get_test_img(img, W=448, H=448):
     if h!=H or w!=W:
         img = cv2.resize(img, (H, W))
     img = np.resize(img,[1,H,W,c])
+    img *= int(255.0/img.max())
     return img
 
 # load trained model

@@ -85,6 +85,7 @@ class VaticPreprocess(object):
 
             frameID = filename.split('.')[0]
             frame = imread(os.path.join(folder, filename))
+            frame *= int(255.0/frame.max())
 
             # === This Section Shoud Be Refractoried ===
 
