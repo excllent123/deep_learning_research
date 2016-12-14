@@ -5,6 +5,7 @@ from skimage.io import imread
 from yolo_layer import YoloDetector
 import cv2
 import yolo_augment
+from random import shuffle
 #==============================================================================
 # Author : Kent Chiu (kentchun33333@gmail.com)
 # This is a script that manipulate the data from vatic-data to yolo setting
@@ -73,6 +74,7 @@ class VaticPreprocess(object):
 
         df = self.df
         filelist = os.listdir(folder)
+        shuffle(filelist)
 
         batch_X = []
         batch_Y = []
