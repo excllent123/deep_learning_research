@@ -61,9 +61,9 @@ base_model = VGG16(input_tensor=input_tensor, include_top=False)
 
 x = base_model.output
 # x = AveragePooling2D((8,8), strides=(8,8))(x)
-x = AveragePooling2D((5,5))(x) # for VGG16
+x = AveragePooling2D((6,6))(x) # for VGG16
 x = Flatten()(x)
-x = Dense(3048)(x)
+x = Dense(2548)(x)
 x = LeakyReLU(alpha=0.1)(x)
 #x = Dense(2048)(x)
 #x = LeakyReLU(alpha=0.1)(x)
@@ -84,13 +84,13 @@ with open("../hub_model/{}.json".format(model_name), "w") as json_file:
 # # freeze base model layers
 
 print (len(base_model.layers))
-iii = 0
-for layer in base_model.layers:
-    if iii == len(base_model.layers)-2:
-        layer.trainable = True
-    else:
-        layer.trainable = False
-    iii+=1
+# iii = 0
+# for layer in base_model.layers:
+#     if iii == len(base_model.layers)-2:
+#         layer.trainable = True
+#     else:
+#         layer.trainable = False
+#     iii+=1
 
 
 def batch_check(x, batch_size):
@@ -125,7 +125,7 @@ with tf.Session() as sess :
         SUM_LOSS= 0
         if epoch == 1:
             try:
-                model.load_weights('../hub_model/{}-v1.h5'.format(model_name))
+                model.load_weights('../hub_model/{}-v3.h5'.format(model_name))
             except :
                 pass
         else :
@@ -152,7 +152,7 @@ with tf.Session() as sess :
         MIN_LOSS = min(SUM_LOSS, MIN_LOSS)
         if SUM_LOSS<=MIN_LOSS:
 
-            model.save_weights('../hub_model/{}-v2.h5'.format(model_name))
+            model.save_weights('../hub_model/{}-v4.h5'.format(model_name))
             print ('SAVE WEIGHT')
         else:
             print ('NOT SAVE')
@@ -160,4 +160,5 @@ with tf.Session() as sess :
 
 
 # v1 : ~19 
-# v2 : start to trian 1 one layer
+# v2 : 1e-6 retrain, really good with 2, after shuffle
+# v3 : even better, 1.9 1e-8

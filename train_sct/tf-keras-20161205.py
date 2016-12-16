@@ -32,7 +32,7 @@ epoch_size = 2500
 model_name = __file__.split('\\')[-1].split('.')[0]
 file_path = '../hub_data/vatic/vatic_id2/example_off_withSave4.txt'
 maplist = ['Rhand', 'ScrewDriver']
-log_dir = '../hub_logger/{}'.format(model_name)
+log_dir = '../hub_logger/{}-v2'.format(model_name)
 
 # =======================================
 
