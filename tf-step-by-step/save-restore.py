@@ -18,3 +18,4 @@ with tf.Session() as sess:
   saver.restore(sess, "model-test.ckpt")
   print("Model restored.")
 
+
