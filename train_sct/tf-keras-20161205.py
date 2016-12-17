@@ -88,7 +88,7 @@ with tf.Session() as sess :
         SUM_LOSS= 0
         if epoch == 1:
             try:
-                model.load_weights('../hub_model/{}-v2.h5'.format(model_name))
+                model.load_weights('../hub_model/{}-v0.h5'.format(model_name))
             except :
                 pass
         else :

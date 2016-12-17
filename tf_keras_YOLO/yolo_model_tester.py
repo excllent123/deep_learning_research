@@ -109,7 +109,7 @@ with tf.Session() as sess :
         img_copy = img.copy()
         for item in bbx:
             name, cX,cY,w,h , _= item
-            if w > 0.5*W or h > 0.5*H or w < 35 or h < 35 :
+            if w > 0.4*W or h > 0.4*H or w < 35 or h < 35 :
                 continue
             #cX,cY,w,h = map(check_50,[cX,cY,w,h] )
             pt1= ( int(cX-0.5*w) ,int(cY-0.5*h) )

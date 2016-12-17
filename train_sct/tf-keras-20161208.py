@@ -125,7 +125,7 @@ with tf.Session() as sess :
         SUM_LOSS= 0
         if epoch == 1:
             try:
-                model.load_weights('../hub_model/{}-v3.h5'.format(model_name))
+                model.load_weights('../hub_model/{}-v4.h5'.format(model_name))
             except :
                 pass
         else :
@@ -152,7 +152,7 @@ with tf.Session() as sess :
         MIN_LOSS = min(SUM_LOSS, MIN_LOSS)
         if SUM_LOSS<=MIN_LOSS:
 
-            model.save_weights('../hub_model/{}-v4.h5'.format(model_name))
+            model.save_weights('../hub_model/{}-v5.h5'.format(model_name))
             print ('SAVE WEIGHT')
         else:
             print ('NOT SAVE')
@@ -162,3 +162,5 @@ with tf.Session() as sess :
 # v1 : ~19 
 # v2 : 1e-6 retrain, really good with 2, after shuffle
 # v3 : even better, 1.9 1e-8
+# v4 : 1.7 1e-8
+# v5 : 1e-9
