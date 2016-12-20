@@ -26,7 +26,7 @@ arg=parser.parse_args()
 # ===========================================================
 # initialize the parameters
 
-threshold   = arg.threshold if (arg.threshold and arg.threshold < 1) else 0.2
+threshold   = arg.threshold if (arg.threshold and arg.threshold < 2) else 0.2
 
 weight_file = arg.weight_file if arg.weight_file else 'tf-keras-20161125-v7.h5'
 
@@ -109,7 +109,7 @@ with tf.Session() as sess :
         img_copy = img.copy()
         for item in bbx:
             name, cX,cY,w,h , _= item
-            if w > 0.4*W or h > 0.4*H or w < 35 or h < 35 :
+            if w > 0.4*W or h > 0.4*H or w < 35 or h < 35 or w > 2.5*h or h>2.5*w:
                 continue
             #cX,cY,w,h = map(check_50,[cX,cY,w,h] )
             pt1= ( int(cX-0.5*w) ,int(cY-0.5*h) )

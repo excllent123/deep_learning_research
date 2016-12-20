@@ -39,7 +39,7 @@ A =      YoloDetector(C = C)
 processer = VaticPreprocess(file_path, maplist=maplist, detector=A)
 
 yolooo = YoloNetwork(C=C)
-model = yolooo.yolo_tiny_v2()
+model = yolooo.yolo_tiny()
 
 # =======================================
 model_json = model.to_json()
@@ -64,7 +64,7 @@ def batch_check(x, batch_size):
     return x
 
 
-# where true_y [None, S*S*(B*5+C)]
+
 loss = A.loss(true_y, pred_y, batch_size=batch_size) # tf-stle slice must have same rank
 #loss = tf.py_func(A.loss, true_y[0,:], pred_y[0,:])
 
@@ -78,8 +78,6 @@ init = tf.global_variables_initializer()
 MIN_LOSS = 9999
 with tf.Session() as sess :
     sess.run(init)
-
-
     writer = tf.summary.FileWriter(log_dir, tf.get_default_graph())
     # test mode
     epoch = 1
@@ -87,7 +85,7 @@ with tf.Session() as sess :
         SUM_LOSS= 0
         if epoch == 1:
             try:
-                model.load_weights('../hub_model/{}-v0.h5'.format(model_name))
+                model.load_weights('../hub_model/{}-v2.h5'.format(model_name))
             except :
                 pass
         else :
@@ -114,12 +112,12 @@ with tf.Session() as sess :
         MIN_LOSS = min(SUM_LOSS, MIN_LOSS)
         if SUM_LOSS<=MIN_LOSS:
 
-            model.save_weights('../hub_model/{}-v2.h5'.format(model_name))
+            model.save_weights('../hub_model/{}-v3.h5'.format(model_name))
             print ('SAVE WEIGHT')
         else:
             print ('NOT SAVE')
         epoch +=1
 
-# v1 ~ loss = 19
-# start training v2 with 0.0001 FAIL ===> 1e-7 
+# v2 ~ loss = 1.8 with 1e-6 557EP
+
 
