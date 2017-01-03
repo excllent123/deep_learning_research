@@ -1,7 +1,7 @@
 var webpack = require('webpack')
 
 module.exports = {
-    entry: './component_ui/app_bar.js',
+    entry: './app.js',
     output: {
           path: __dirname,
           filename: 'bundle.js'

@@ -1,3 +1,9 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+import AppBar_V2 from './component_ui/app_bar'
+// ERROR : import AppBar_V2 from 'component_ui/app_bar'
+
+
 
 class MarkdownEditor extends React.Component {
     constructor(props) {
@@ -35,49 +41,42 @@ class MarkdownEditor extends React.Component {
         );
     }
 }
+export default MarkdownEditor;
 
-ReactDOM.render(<MarkdownEditor />, document.getElementById('app'));
-
-
-
-class MyComponent extends React.Component {
-  constructor(props) {
-    super(props);
-    console.log('constructor');
-    this.handleClick = this.handleClick.bind(this);
-    this.state = {
-      name: 'Mark',
-    }
-  }
-  handleClick() {
-    this.setState({'name': 'Zuck'});
-    //window.alert('dd')
-
-  }
-  componentWillMount() {
-    console.log('componentWillMount');
-  }
+class Home extends React.Component{
   componentDidMount() {
-    console.log('componentDidMount');
+    const options = { valueNames: [ 'name' ] };
+    const userList = new List(this.refs.users, options);
   }
-  componentWillReceiveProps() {
-    console.log('componentWillReceiveProps');
-  }
-  componentWillUpdate() {
-    console.log('componentWillUpdate');
-  }
-  componentDidUpdate() {
-    console.log('componentDidUpdate');
-  }
-  componentWillUnmount() {
-    console.log('componentWillUnmount');
-  }
-  render() {
+
+  render() { 
     return (
-      // HRER, handle the basic router of Virtual-Dom to Actual-Dom
-      <div onClick={this.handleClick}>Hi, {this.state.name}</div>
+    /*<AppBar_V2 /> It should be wrapped in a parent element. e.g
+
+ return(
+      <div id="parent">
+        <div id="div1"></div>
+        <div id="div1"></div>
+      </div>
+      )*/
+    <div ref="parent">
+    <div ref="users">
+      <input className="search" placeholder="Search" />
+      <ul className="list">
+        <li><h3 className="name">Jonny Stromberg</h3></li>
+        <li><h3 className="name">Jonas Arnklint</h3></li>
+        <li><h3 className="name">Martina Elm</h3></li>
+      </ul>
+    </div>
+    <div className="MarkdownEditor"></div>
+    </div>
     );
   }
-}
+};
 
-ReactDOM.render(<MyComponent />, document.getElementById('app2'));
+
+//ReactDOM.render(<AppBar_V2 />, document.getElementById('app'));
+
+ReactDOM.render(<Home />, document.getElementById('app2'));
+
+

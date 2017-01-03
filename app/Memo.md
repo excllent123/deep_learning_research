@@ -19,9 +19,10 @@ sudo brew link --overwrite node
 // Help you memory, help you learn, 
 
 QUID : 
-Webpack :: npm install webpack -g :: able to use in CLI
-
-npm install webpack --save-dev :: As dependency
+Webpack :: 
+npm install webpack -g :: able to use in CLI
+npm install webpack --save-dev :: As building process dependency
+npm install webpack --save :: As must dependency
 
 
 Prob : material-ui webpack syntax fail

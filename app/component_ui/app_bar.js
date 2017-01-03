@@ -1,7 +1,7 @@
-import React from '../node_modules/react';
-import AppBar from '../node_modules/material-ui/AppBar';
+import React from 'react';
+import AppBar from 'material-ui/AppBar';
 import {Tabs, Tab} from 'material-ui/Tabs';
-import ReactDOM from '../node_modules/react-dom';
+import ReactDOM from 'react-dom';
 
 /**
  * A simple example of `AppBar` with an icon on the right.
@@ -26,7 +26,7 @@ class Nav extends React.Component {
 
   render() {
     return (
-      <AppBar title="My App">
+      <AppBar title="Vivid">
         <Tabs>
           <Tab label="Item 1" />
           <Tab label="Item 2" />
@@ -37,4 +37,5 @@ class Nav extends React.Component {
     )
   }
 }
+
 ReactDOM.render(<Nav />, document.getElementById('app')); 
