@@ -5,6 +5,9 @@ import os
 
 os.system('git add -A')
 os.system('''git commit -m"up" ''')
-
-print ('Updated to github cloud')
+try :
+    os.system(''' git push ''')
+    print ('Already Pushed to CLoud')
+except:
+    print ('[Warrning]Commited but not pushed to cloud')
 
