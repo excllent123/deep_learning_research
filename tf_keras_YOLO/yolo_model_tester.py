@@ -7,10 +7,6 @@ import imageio
 import cv2
 import numpy as np
 from keras.models import model_from_json
-
-# ================================
-# Set you parameters by config
-
 import argparse
 
 # ==========================================================
@@ -48,7 +44,6 @@ H=448
 S=7
 B=2
 C=2
-nb_epoch = C
 
 
 yolo_detect = YoloDetector(C=C)
