@@ -62,7 +62,7 @@ class MAZE(Environment):
 
     def construct():
 
-    def _put_stone():
+    def _put_stone():x
         pass
 
     def _put_holes():
