@@ -1,8 +1,6 @@
 '''
 Author : Kent Chiu 
-
 Environment as the Problems
-
 '''
 
 class Agent(object):
@@ -43,9 +41,8 @@ class MAZE(Environment):
         super(Environment, self).__init__()
         self.actionSet = {'UP':1, 'RT':2, 'DW':3,'LF':4}
 
-    def rules(action):
+    def step(self, action):
         assert action in self.actionSet
-        s = self.canvas.coords(self.rect)
         base_action = np.array([0, 0])
         if action == 0:   # up
             if s[1] > UNIT:
