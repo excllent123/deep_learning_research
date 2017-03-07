@@ -1,17 +1,19 @@
 # Author : Kent Chiu
-# Des : this module provide a tool for parsing label-data from vatic.txt 
-# with coressponding video, and provide batch-pumping for training model 
 
-import os
+import os, cv2
 import pandas as pd
 from skimage.io import imread
-from yolo_layer import YoloDetector
-import cv2
+from _yolo_layer import YoloDetector
 import yolo_augment
 from random import shuffle
 
 
 class VaticPreprocess(object):
+    """description : 
+    this module provide an interface for parsing label-data from vatic.txt 
+    with coressponding video, and provide batch-pumping for training SGD-based model 
+    especially for Deep Learning such as CNN/RNN.
+    """
     def __init__(self, fileName, mapList, detector=None):
         '''
         input :
@@ -77,12 +79,14 @@ class VaticPreprocess(object):
         filelist = os.listdir(folder)
         shuffle(filelist)
 
+        # init
         batch_X = []
         batch_Y = []
         batch   = 1
-
         while filelist:
             filename = filelist.pop()
+
+            # check type
             if filename.split('.')[-1] not in ('png','jpg'):
                 continue
 
@@ -90,8 +94,7 @@ class VaticPreprocess(object):
             frame = imread(os.path.join(folder, filename))
             frame *= int(255.0/frame.max())
 
-            # 
-
+            # reshape img size
             h,w,c = frame.shape
             if w != 448 or h!=448:
                 frame = cv2.resize(frame, (448, 448))
@@ -101,11 +104,9 @@ class VaticPreprocess(object):
             else:
                 annotations = self.get_annotation(frameID)
 
-            # Real Time Data Augmentation
+            # in-Pipe data augmentation
             frame = yolo_augment.recolor(frame)
             frame, annotations = yolo_augment.affine_trains(frame, annotations)
-
-            # 
 
             y = self.detector.encode(annotations)
 
@@ -118,12 +119,9 @@ class VaticPreprocess(object):
                 batch_X  = []
                 batch_Y  = []
                 batch    = 1
-
                 yield result_X, result_Y
             else :
                 batch+=1
-
-
 
     def genYOLO_vid(self, vid):
         '''
@@ -137,52 +135,3 @@ class VaticPreprocess(object):
             frame = vid.get_data(frameID)
             annotations = self.get_annotation(frameID)
             yield frame , annotations
-
-
-
-
-
-if __name__ =='__main__':
-    file_path = '../hub_data/vatic/vatic_id2/ann.txt'
-    mapList = ['Rhand', 'ScrewDriver']
-    yoloProcessor = VaticPreprocess(file_path, mapList=mapList)
-    import cv2
-    import numpy as np
-
-    #B = yoloProcessor.genYOLO_vid(vid)
-    C = yoloProcessor.genYOLO_foler_batch('../hub_data/vatic/vatic_id2')
-
-    for x, y in C:
-        x = np.asarray(x)
-        y = np.asarray(y)
-        print (x.shape , y.shape)
-        img = x[0]
-        output_tensor = y[0]
-        bbx   =  yoloProcessor.detector.decode(output_tensor)
-
-        img_copy = img.copy()
-        for item in bbx:
-            name, cX,cY,w,h , _= item
-            def check_50(x):
-                if x < 50 :
-                    x = 50
-                return x
-            #cX,cY,w,h = map(check_50,[cX,cY,w,h] )
-            pt1= ( int(cX-0.5*w) ,int(cY-0.5*h) )
-            pt2= ( int(cX+0.5*w) ,int(cY+0.5*h) )
-            cv2.rectangle(img_copy, pt1, pt2, (255,255,255), thickness=2)
-
-        cv2.imshow("Before",img)
-        cv2.imshow("After", img_copy)
-        cv2.waitKey()
-
-
-#    import imageio
-#    vid = imageio.get_reader('../data/vatic_id2/output.avi')
-#    B = yoloProcessor.genYOLO_vid(vid)
-#    for frame , annotations in B:
-#        print annotations
-#        cv2.imshow('ImageWindow',frame)
-#        cv2.waitKey()
-#        raw_input()
-
