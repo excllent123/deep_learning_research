@@ -1,4 +1,4 @@
-# The default ``config.py``
+w# The default ``config.py``
 
 
 def set_prefs(prefs):
