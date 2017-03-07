@@ -48,7 +48,7 @@ Thumbs.db
 # Raw Data #
 ############
 *.jpg
-*.png
+
 *.avi
 *.mp4
 *.mp3
