@@ -2,15 +2,13 @@
 import tensorflow as tf
 import numpy as np
 
- # import the necessary packages
-
 from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
 from keras.layers.core import Activation, Flatten, Dropout, Dense
 from keras.layers.normalization import BatchNormalization
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Sequential
 
-from yolo_layer import YoloDetector
+from _yolo_layer import YoloDetector
 
 # =============================================================================
 # This module contains following network architecture 
