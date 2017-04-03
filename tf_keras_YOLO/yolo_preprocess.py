@@ -1,6 +1,6 @@
 # Author : Kent Chiu
-# Des : this module provide a tool for parsing label-data from vatic.txt 
-# with coressponding video, and provide batch-pumping for training model 
+# Des : this module provide a tool for parsing label-data from vatic.txt
+# with coressponding video, and provide batch-pumping for training model
 
 import os
 import pandas as pd
@@ -15,9 +15,9 @@ class VaticPreprocess(object):
     def __init__(self, fileName, mapList, detector=None):
         '''
         input :
-        fileName = vatic.txt file 
+        fileName = vatic.txt file
         mapList  = object mapping list in vatic setting
-        detector = assigned the detector for 
+        detector = assigned the detector for
         '''
         self.df = self.get_vatic_df(fileName)
         self.mapList = mapList
@@ -69,7 +69,7 @@ class VaticPreprocess(object):
         description :
         the img file in folder must only contain what we need  that is
         preprocess by vatic which is in the format like  : numbers.png
-        return : 
+        return :
         X : 4D tensor (batch_zie, W, H, C)
         Y : 2D tensor (batch_zie, S*S*(5*B+C))
         '''
@@ -90,7 +90,7 @@ class VaticPreprocess(object):
             frame = imread(os.path.join(folder, filename))
             frame *= int(255.0/frame.max())
 
-            # 
+            #
 
             h,w,c = frame.shape
             if w != 448 or h!=448:
@@ -105,7 +105,7 @@ class VaticPreprocess(object):
             frame = yolo_augment.recolor(frame)
             frame, annotations = yolo_augment.affine_trains(frame, annotations)
 
-            # 
+            #
 
             y = self.detector.encode(annotations)
 
@@ -127,8 +127,8 @@ class VaticPreprocess(object):
 
     def genYOLO_vid(self, vid):
         '''
-        input : vid the video object from imageio 
-        return : 
+        input : vid the video object from imageio
+        return :
         X : 4D tensor (batch_zie, W, H, C)
         Y : 2D tensor (batch_zie, S*S*(5*B+C))
         '''

@@ -6,8 +6,7 @@ from keras.layers.core import Activation, Flatten, Dropout, Dense
 from keras.models import Sequential
 
 class CNNFactory:
-    """
-    description : 
+    """description : 
     this class provide an interface for building classic 
     convolutional neural network algorithm, powered by keras 
 
