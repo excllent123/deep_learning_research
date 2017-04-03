@@ -32,12 +32,17 @@ def imcv2_affine_trans(im):
 	if flip: im = cv2.flip(im, 1)
 	return im, [w, h, c], [scale, [offx, offy], flip]
 
-def linearOP(pt, scale, off):
+def linear_op(pt, scale, off):
 	return max(int(pt*scale-off),0)
 
 def affine_trains(im, ann):
-	'''
-	ann : [[classid, int(cX), int(cY), int(boxW), int(boxH)]]
+	'''description : 
+	input : image and ann where 
+	        ann : [[classid, int(cX), int(cY), int(boxW), int(boxH)]]
+	        due to the fact that there are multi-objects in single frame
+	output: as input but with augmentation 
+
+	note : 
 	'''
 
 	# image operation
@@ -58,8 +63,8 @@ def affine_trains(im, ann):
 		x_min, x_max = int(cx-0.5*H), int(cx+0.5*H)
 		y_min, y_max = int(cy-0.5*W), int(cy+0.5*W)
 
-		x_min, x_max = linearOP(x_min,scale,offx), linearOP(x_max,scale,offx)
-		y_min, y_max = linearOP(y_min,scale,offx), linearOP(y_max,scale,offx)
+		x_min, x_max = linear_op(x_min,scale,offx), linear_op(x_max,scale,offx)
+		y_min, y_max = linear_op(y_min,scale,offx), linear_op(y_max,scale,offx)
 		if flip: 
 			y_max_ = y_max
 			y_max = w- y_min 
@@ -98,8 +103,8 @@ if __name__=='__main__':
         # *scale - off
         scale = cc[0]
         offx, offy = cc[1]
-        x_min, x_max = linearOP(x_min,scale,offx), linearOP(x_max,scale,offx)
-        y_min, y_max = linearOP(y_min,scale,offx), linearOP(y_max,scale,offx)
+        x_min, x_max = linear_op(x_min,scale,offx), linear_op(x_max,scale,offx)
+        y_min, y_max = linear_op(y_min,scale,offx), linear_op(y_max,scale,offx)
 
         
 
