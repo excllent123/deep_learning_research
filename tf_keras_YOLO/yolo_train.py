@@ -1,6 +1,26 @@
+'''
+Author : Kent Chiu
 
-import relat_import
+This module is a general-trainer with support on following condition 
+(1) single-gpu train 
+(2) multi-gpu train
+(3) multi-node train 
 
+[Execution-Flow]  
+
+(1) check the environment if compatible with env-config 
+ |                                                   ^
+ v                                                   |  
+(2) output-checking-logger -> (if-wrong) -> automatic generate the env-config 
+ | (if-yes)            
+ v
+(3) load the train-config init-model (train-config is also execut-config)
+ |
+ v
+(4) training & validating & model-export & training-logger 
+
+'''
+import _relative_import
 import tensorflow as tf
 import keras.backend as K
 import numpy as np
@@ -16,7 +36,67 @@ from tf_keras_YOLO.tf_keras_board import get_summary_op
 flags = tf.flags
 flags.DEFINE_float('learning_rate', 1e-7, 'Initial learning rate.')
 flags.DEFINE_integer('max_steps', 2000, 'Number of steps to run trainer.')
+
 FLAGS = flags.FLAGS
+
+
+def main():
+    # step 1 : parse the configuration 
+    # -> 
+    # step 2 : init the model 
+    # step 3 : train the model 
+    # (option) reveal the result in console 
+    
+def main(unused_argv):
+    # step 1 : parse the configuration 
+    # Load the environment.
+    env = json.loads(os.environ.get("TF_CONFIG", "{}"))
+
+    # Load the cluster data from the environment.
+    cluster_data = env.get("cluster", None)
+    cluster = tf.train.ClusterSpec(cluster_data) if cluster_data else None
+
+    # Load the task data from the environment.
+    task_data = env.get("task", None) or {"type": "master", "index": 0}
+    task = type("TaskSpec", (object,), task_data)  
+
+    # Logging the version.
+    logging.set_verbosity(tf.logging.INFO)
+    logging.info("%s: Tensorflow version: %s.",
+                 task_as_string(task), tf.__version__)  
+
+    # Dispatch to a master, a worker, or a parameter server.
+    if not cluster or task.type == "master" or task.type == "worker":
+      model = find_class_by_name(FLAGS.model,
+          [frame_level_models, video_level_models])()  
+
+      reader = get_reader()  
+
+      model_exporter = export_model.ModelExporter(
+          frame_features=FLAGS.frame_features,
+          model=model,
+          reader=reader)  
+
+      Trainer(cluster, task, FLAGS.train_dir, model, reader, model_exporter,
+              FLAGS.log_device_placement, FLAGS.max_steps,
+              FLAGS.export_model_steps).run(start_new_model=FLAGS.start_new_model)  
+
+    elif task.type == "ps":
+      ParameterServer(cluster, task).run()
+    else:
+      raise ValueError("%s: Invalid task_type: %s." %
+                       (task_as_string(task), task.type))
+
+
+def parse():
+    pass
+
+def build_model():
+    pass
+
+def train():
+    pass
+
 
 
 # =========================================

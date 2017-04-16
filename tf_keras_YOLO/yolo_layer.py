@@ -12,6 +12,12 @@ import tensorflow as tf
 
 
 class YoloDetector(Layer):
+    '''
+    Description : 
+    this class inherit keras-layer and providse the connectivity of tensorflow 
+    this class implement the customize yolo-loss & encode & decode from [paper]
+    (https://pjreddie.com/media/files/papers/yolo.pdf) for multi-object recog.  
+    '''
     def __init__(self, C=20, rImgW=448, rImgH=448, S=7, B=2, classMap=None):
         # C = number of class
         self.S = S
@@ -134,11 +140,18 @@ class YoloDetector(Layer):
 
         result = []
         for i in range(len(boxes_filtered)):
-            result.append([self.classMap[classes_num_filtered[i]],boxes_filtered[i][1],boxes_filtered[i][0],boxes_filtered[i][2],boxes_filtered[i][3],probs_filtered[i]])
+            result.append([self.classMap[classes_num_filtered[i]],boxes_filtered[i][0],boxes_filtered[i][1],boxes_filtered[i][2],boxes_filtered[i][3],probs_filtered[i]])
 
         return result
 
     def loss(self, truY_, preY_, COORD=5. , NOOBJ=.5 , loss_=0 , batch_size=8):
+        '''
+        [description]
+        - mini-batch optimization
+        - the output of loss-function should >= 0
+        - use avg-loss of batch-size
+        - max-gradient clip with loss max =1000.
+        '''
         S, B, C, W, H = self.S, self.B, self.C, self.W, self.H
 
         for batch in range(batch_size):
@@ -200,7 +213,8 @@ class YoloDetector(Layer):
             loss_ += tf.reduce_sum(tf.pow(truConf- preConf, 2)              * objMask  )
             loss_ += tf.reduce_sum(tf.pow(truConf- preConf, 2)              * nobjMask ) * NOOBJ
             loss_ += tf.reduce_sum(tf.reduce_sum(tf.pow(truCP- preCP, 2), 1)* objMask  )
-        return loss_ / batch_size
+        # clip gradient
+        return max(float(loss_ / batch_size), 1000.)
 
     def boxArea(self, box):
         return box[:,:,2]*box[:,:,3]
@@ -247,16 +261,22 @@ class YoloDetector(Layer):
 
 if __name__ =='__main__':
     detector = YoloDetector()
+    samples = [[[3, 22, 12, 123, 123]],
+       [[4, 22, 12, 123, 123]],
+       [[3, 22, 12, 123, 123]],
+       [[4, 23, 15, 111, 121]]]
+    for i in samples:
+        print (i , detector.decode(detector.encode(i)))
     a = detector.encode([[3, 22, 12, 123, 123]])
     b = detector.encode([[4, 22, 12, 123, 123]])
     c = detector.encode([[3, 22, 12, 123, 123]])
     d = detector.encode([[4, 23, 15, 111, 121]])
-    print detector.decode(a)
-    print detector.decode(b)
-    print detector.decode(c)
-    print detector.loss(a, c)
-    print detector.loss(a, b)
-    print detector.loss(d, b)
+    print (detector.decode(a) )
+    print (detector.decode(b) )
+    print (detector.decode(c) )
+    #print (detector.loss(a, c) )
+    #print (detector.loss(a, b) )
+    #print (detector.loss(d, b) )
 
 
 

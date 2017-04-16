@@ -1,0 +1,53 @@
+{
+	// tf-cluster spec : worker 
+    "worker": [
+        "worker0.example.com:2222",
+        "worker1.example.com:2222",
+        "worker2.example.com:2222"
+    ],
+    // tf-cluster spec : parameter server
+    "ps": [
+        "ps0.example.com:2222",
+        "ps1.example.com:2222"
+    ], 
+    // ==========
+    // [Address]
+    // The directory to save the model files in. [EX] /tmp/yt8m_model
+	"model_hub_address":"",
+	// weight file or etc
+	"model_parameter_address":"",
+	// image-sequence or Vido 
+	"dataset_address":"",
+	// tf-visulizer log 
+	"log_address":"",
+	//-----------------------
+	// yolo-setting basic not change
+	"img_width":448,
+	//
+	"img_height":448,
+	// S, 
+	"grid_number":7,
+	// B,  
+	"preidct_box_num":2,
+	// 
+	"class_num":20,
+	// 
+	"classMap":[],
+	//-------------------------------------------------------------
+	// select multi-and with yolo-top-layer(final-layer)
+	"model_architecture":"", 
+	//
+	"batch_size":15,
+	// learing-rate rule | decapy method
+	"learning-rate":0.001, 
+	// sometimes, we random select the frame or img or rows in dataset
+	"max_num_per_epoch":1000000, 
+	// 
+	"epoch":20, 
+	// could select the tf.optimizer if wanted 
+	"tf_optimizer":"AdamOptimizer",
+	// model export rule : best loss or 
+	"export_best_num":10, 
+
+}
+
