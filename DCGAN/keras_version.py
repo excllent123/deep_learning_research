@@ -7,7 +7,7 @@ from keras.layers.convolutional import UpSampling2D
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.layers.core import Flatten
 from keras.optimizers import SGD
-from keras.datasets import mnist
+from keras.datasets import mnist, cifar10
 import numpy as np
 from PIL import Image
 import argparse
@@ -39,6 +39,7 @@ def discriminator_model():
                         64, (5, 5),
                         padding='same',
                         input_shape=(28, 28, 1)))
+    model.add(BatchNormalization())
     model.add(Activation('tanh'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Convolution2D(128, (5, 5)))

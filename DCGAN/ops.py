@@ -6,11 +6,11 @@ from utils import *
 
 
 def linear():
-	return z_, h0_w, h0b
+    return z_, h0_w, h0b
 
 
 def linear(input_, output_size, scope=None, 
-	stddev=0.02, bias_start=0.0, with_w=False):
+    stddev=0.02, bias_start=0.0, with_w=False):
     '''
     Description: 
     - This function provide a random linear 
@@ -54,3 +54,4 @@ def generator(self, z):
         [self.batch_size, 64, 64, 3], name='g_h4', with_w=True)
 
     return tf.nn.tanh(h4)
+

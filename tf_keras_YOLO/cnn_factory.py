@@ -36,13 +36,13 @@ class CNNFactory:
         # initialize the model
         model = Sequential()
 
-        model.add(Convolution2D(20, 5, 5, border_mode="same",
+        model.add(Convolution2D(20, (5, 5), padding="same",
             input_shape=(numChannels, imgRows, imgCols)))
         model.add(Activation(activation))
         model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
 
         # define the second set of CONV => ACTIVATION => POOL layers
-        model.add(Convolution2D(50, 5, 5, border_mode="same"))
+        model.add(Convolution2D(50, (5, 5), padding="same"))
         model.add(Activation(activation))
         model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
 
@@ -60,7 +60,7 @@ class CNNFactory:
         model = Sequential()
 
         # define the first (and only) CONV => RELU layer
-        model.add(Convolution2D(32, 3, 3, border_mode="same",
+        model.add(Convolution2D(32, 3, 3, padding="same",
             input_shape=(numChannels, imgRows, imgCols)))
         model.add(Activation("relu"))
 
@@ -76,7 +76,7 @@ class CNNFactory:
         model = Sequential()
 
         # define the first set of CONV => RELU => CONV => RELU => POOL layers
-        model.add(Convolution2D(32, 3, 3, border_mode="same",
+        model.add(Convolution2D(32, 3, 3, padding="same",
             input_shape=(numChannels, imgRows, imgCols)))
         model.add(Activation("relu"))
         model.add(Convolution2D(32, 3, 3))
@@ -87,7 +87,7 @@ class CNNFactory:
             model.add(Dropout(0.25))
 
         # define the second set of CONV => RELU => CONV => RELU => POOL layers
-        model.add(Convolution2D(64, 3, 3, border_mode="same"))
+        model.add(Convolution2D(64, 3, 3, padding="same"))
         model.add(Activation("relu"))
         model.add(Convolution2D(64, 3, 3))
         model.add(Activation("relu"))
@@ -114,7 +114,7 @@ class CNNFactory:
         model = Sequential()
 
         # define the first set of CONV => RELU => POOL layers
-        model.add(Convolution2D(16, 5, 5, border_mode="same",
+        model.add(Convolution2D(16, 5, 5, padding="same",
             input_shape=(numChannels, imgRows, imgCols)))
         model.add(Activation("relu"))
         model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
@@ -124,7 +124,7 @@ class CNNFactory:
             model.add(Dropout(0.25))
 
         # define the second set of CONV => RELU => POOL layers
-        model.add(Convolution2D(20, 5, 5, border_mode="same"))
+        model.add(Convolution2D(20, 5, 5, padding="same"))
         model.add(Activation("relu"))
         model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
 
@@ -133,7 +133,7 @@ class CNNFactory:
             model.add(Dropout(0.25))
 
         # define the third set of CONV => RELU => POOL layers
-        model.add(Convolution2D(20, 5, 5, border_mode="same"))
+        model.add(Convolution2D(20, 5, 5, padding="same"))
         model.add(Activation("relu"))
         model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
 
