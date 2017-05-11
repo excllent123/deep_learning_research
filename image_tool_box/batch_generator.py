@@ -183,8 +183,8 @@ class ImgOneTagGenerator(BatchGenerator):
             self.img_path_all.append([os.path.join(dir_path, s) \
                                       for s in os.listdir(dir_path) \
                                       if s.split('.')[-1] in ('jpg', 'png')])
-        print ('img_path for {} classes'.format(len(self.img_path_all)))
- 
+        self.cli_show()
+
     def gen_balance_batch(self, batch_size, max_iter_per_epoch=10e4):
         '''A generator of a balance batch pumping for classification
 
@@ -235,6 +235,8 @@ class ImgOneTagGenerator(BatchGenerator):
                           if s.split('.')[-1] in ('jpg', 'png'))]
 
         self.img_path_all[cls_index] += new_file_list
+        self.cli_show()
+
 
     def add_all_dirpath(self, dir_path_list):
         '''Perform add all_path 
@@ -246,3 +248,13 @@ class ImgOneTagGenerator(BatchGenerator):
         if len(dir_path_list)!=len(self.img_path_all):
             raise ValueError('the length of dir_path_list'
                              ' is not equal to original buld')
+        for dir_path in dir_path_list:
+            self.img_path_all +=[os.path.join(dir_path, s) \
+                                      for s in os.listdir(dir_path) \
+                                      if s.split('.')[-1] in ('jpg', 'png')]
+        self.cli_show()
+
+    def cli_show(self):
+        for i in range(len(self.img_path_all)):
+            print ('{} fills in calss {}'.format(
+                                         len(self.img_path_all[i], i)))
