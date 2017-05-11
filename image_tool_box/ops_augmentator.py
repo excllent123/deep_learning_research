@@ -89,6 +89,18 @@ class ImgAugmentator(object):
         ```
     '''
 
+    def two_tail_normalize(self, x):
+        '''Performs -=127.5 and *=1/127.
+        '''
+        x -= 127.5
+        x *= 1/127.
+        return x
+
+    def normaliza(self, x):
+        '''Performs *=1/255.'''
+        x *= 1/255.
+        return x
+
     def rescale(self, x, factor):
         '''Performs rescale of the image factor 
         '''
@@ -345,7 +357,6 @@ class ImgAugmentator(object):
         x = np.stack(channel_images, axis=0)
         x = np.rollaxis(x, 0, channel_axis + 1)
         return x
-
 
 
 
