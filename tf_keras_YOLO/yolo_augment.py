@@ -3,79 +3,78 @@ import numpy as np
 
 
 def recolor(im, a = .2, b = 20, c = 1.5):
-	t = [np.random.uniform()]
-	t += [np.random.uniform()]
-	t += [np.random.uniform()]
-	t = np.array(t) * 2. - 1.
+    t = [np.random.uniform()]
+    t += [np.random.uniform()]
+    t += [np.random.uniform()]
+    t = np.array(t) * 2. - 1.
 
-	# random amplify each channel
-	im = im * (1 + t * a)
-	# random brightness
-	im += np.random.uniform() * 2 * b - b
-	# random contrast
-	mx = 255. * (1 + a) + b
-	up = np.random.uniform() * c
-	im = np.power(im/mx, 1 + up)
-	return np.array(im * 255., np.uint8)
+    # random amplify each channel
+    im = im * (1 + t * a)
+    # random brightness
+    im += np.random.uniform() * 2 * b - b
+    # random contrast
+    mx = 255. * (1 + a) + b
+    up = np.random.uniform() * c
+    im = np.power(im/mx, 1 + up)
+    return np.array(im * 255., np.uint8)
 
 def imcv2_affine_trans(im):
-	# Scale and translate
-	h, w, c = im.shape
-	scale = np.random.uniform() / 10. + 1.
-	max_offx = (scale-1.) * w
-	max_offy = (scale-1.) * h
-	offx = int(np.random.uniform() * max_offx)
-	offy = int(np.random.uniform() * max_offy)
-	im = cv2.resize(im, (0,0), fx = scale, fy = scale)
-	im = im[offy : (offy + h), offx : (offx + w)]
-	flip = np.random.binomial(1, .5)
-	if flip: im = cv2.flip(im, 1)
-	return im, [w, h, c], [scale, [offx, offy], flip]
+    # Scale and translate
+    h, w, c = im.shape
+    scale = np.random.uniform() / 10. + 1.
+    max_offx = (scale-1.) * w
+    max_offy = (scale-1.) * h
+    offx = int(np.random.uniform() * max_offx)
+    offy = int(np.random.uniform() * max_offy)
+    im = cv2.resize(im, (0,0), fx = scale, fy = scale)
+    im = im[offy : (offy + h), offx : (offx + w)]
+    flip = np.random.binomial(1, .5)
+    if flip: im = cv2.flip(im, 1)
+    return im, [w, h, c], [scale, [offx, offy], flip]
 
 def linear_op(pt, scale, off):
-	return max(int(pt*scale-off),0)
+    return max(int(pt*scale-off),0)
 
 def affine_trains(im, ann):
-	'''description : 
-	input : image and ann where 
-	        ann : [[classid, int(cX), int(cY), int(boxW), int(boxH)]]
-	        due to the fact that there are multi-objects in single frame
-	output: as input but with augmentation 
+    '''description : 
+    input : image and ann where 
+            ann : [[classid, int(cX), int(cY), int(boxW), int(boxH)]]
+            due to the fact that there are multi-objects in single frame
+    output: as input but with augmentation 
 
-	note : 
-	'''
+    '''
 
-	# image operation
-	h, w, c = im.shape
-	scale = np.random.uniform() / 10. + 1.
-	max_offx = (scale-1.) * w
-	max_offy = (scale-1.) * h
-	offx = int(np.random.uniform() * max_offx)
-	offy = int(np.random.uniform() * max_offy)
-	im = cv2.resize(im, (0,0), fx = scale, fy = scale)
-	im = im[offy : (offy + h), offx : (offx + w)]
-	flip = np.random.binomial(1, .5)
-	if flip: im = cv2.flip(im, 1)
-	
-	# annotation operation
-	new_ann = []
-	for classid , cx, cy, W, H in ann :
-		x_min, x_max = int(cx-0.5*H), int(cx+0.5*H)
-		y_min, y_max = int(cy-0.5*W), int(cy+0.5*W)
+    # image operation
+    h, w, c = im.shape
+    scale = np.random.uniform() / 10. + 1.
+    max_offx = (scale-1.) * w
+    max_offy = (scale-1.) * h
+    offx = int(np.random.uniform() * max_offx)
+    offy = int(np.random.uniform() * max_offy)
+    im = cv2.resize(im, (0,0), fx = scale, fy = scale)
+    im = im[offy : (offy + h), offx : (offx + w)]
+    flip = np.random.binomial(1, .5)
+    if flip: im = cv2.flip(im, 1)
+    
+    # annotation operation
+    new_ann = []
+    for classid , cx, cy, W, H in ann :
+        x_min, x_max = int(cx-0.5*H), int(cx+0.5*H)
+        y_min, y_max = int(cy-0.5*W), int(cy+0.5*W)
 
-		x_min, x_max = linear_op(x_min,scale,offx), linear_op(x_max,scale,offx)
-		y_min, y_max = linear_op(y_min,scale,offx), linear_op(y_max,scale,offx)
-		if flip: 
-			y_max_ = y_max
-			y_max = w- y_min 
-			y_min = w- y_max_
+        x_min, x_max = linear_op(x_min,scale,offx), linear_op(x_max,scale,offx)
+        y_min, y_max = linear_op(y_min,scale,offx), linear_op(y_max,scale,offx)
+        if flip: 
+            y_max_ = y_max
+            y_max = w- y_min 
+            y_min = w- y_max_
 
-		cX   = (int(x_min)+int(x_max))/2
-		cY   = (int(y_min)+int(y_max))/2
-		boxH = int(x_max) - int(x_min)
-		boxW = int(y_max) - int(y_min)
-		new_ann.append([classid, int(cX), int(cY), int(boxW), int(boxH)])
-	return im, new_ann
+        cX   = (int(x_min)+int(x_max))/2
+        cY   = (int(y_min)+int(y_max))/2
+        boxH = int(x_max) - int(x_min)
+        boxW = int(y_max) - int(y_min)
+        new_ann.append([classid, int(cX), int(cY), int(boxW), int(boxH)])
+    return im, new_ann
 
 
 
