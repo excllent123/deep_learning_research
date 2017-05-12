@@ -7,6 +7,9 @@ from _yolo_layer import YoloDetector
 import yolo_augment
 from random import shuffle
 
+class DataPreprocess(object):
+    def gen_from_foler_batch(self):
+        pass
 
 class VaticPreprocess(object):
     """description : 

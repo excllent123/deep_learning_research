@@ -234,11 +234,6 @@ class YoloDetector(Layer):
         else : intersection =  tb*lr
         return intersection/ (box1[2]*box1[3] + box2[2]*box2[3] -intersection)
 
-    def train(self, ):
-        model = self.build()
-        loss = self.loss
-        model.compile(optimizer=RMSprop(lr=0.001), loss=loss, metrics=['accuracy'])
-
 
 
 
