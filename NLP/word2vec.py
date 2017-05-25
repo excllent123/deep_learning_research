@@ -43,6 +43,13 @@ import tensorflow as tf
 
 from tensorflow.models.embedding import gen_word2vec as word2vec
 
+
+import numpy as np
+
+n
+
+
+
 flags = tf.app.flags
 
 flags.DEFINE_string("save_path", None, "Directory to write the model and "
