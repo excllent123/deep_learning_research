@@ -46,9 +46,6 @@ from tensorflow.models.embedding import gen_word2vec as word2vec
 
 import numpy as np
 
-n
-
-
 
 flags = tf.app.flags
 
@@ -517,6 +514,7 @@ def main(_):
     print("--train_data --eval_data and --save_path must be specified.")
     sys.exit(1)
   opts = Options()
+
   with tf.Graph().as_default(), tf.Session() as session:
     with tf.device("/cpu:0"):
       model = Word2Vec(opts, session)

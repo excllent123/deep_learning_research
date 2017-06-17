@@ -134,9 +134,63 @@ I understand it is pythonic to simply do this:
     - the weight of an element of the matrix is proportional 
       to the number of times the terms appear in each document,
       where rare terms are upweighted to reflect their relative importance.
+
+
+@ Kullback–Leibler divergence or KL-Distance
+    - 相對熵（relative entropy）又稱為KL散度（Kullback–Leibler divergence，簡稱KLD）
+      [1]，信息散度（information divergence），信息增益（information gain）。
+    - scipy.stats.entropy(pk, qk=None, base=None)
+    - 當且僅當P = Q時DKL(P||Q)為零。
+
+
+
+
+@ DAG with NLP-machine, the machine 
+
+@ KL散度和其它量的關係[編輯]
+  - 自信息（en:self-information）和KL散度
+    {\displaystyle I(m)=D_{\mathrm {KL} }(\delta _{im}\|\{p_{i}\}),} I(m)=D_{{{\mathrm  {KL}}}}(\delta _{{im}}\|\{p_{i}\}),
+
+  - 互信息（en:Mutual information）和KL散度 
+    {\displaystyle {\begin{aligned}I(X;Y)&=D_{\mathrm {KL} }(P(X,Y)\|P(X)P(Y))\\&=\mathbb {E} _{X}\{D_{\mathrm {KL} }(P(Y|X)\|P(Y))\}\\&=\mathbb {E} _{Y}\{D_{\mathrm {KL} }(P(X|Y)\|P(X))\}\end{aligned}}} {\begin{aligned}I(X;Y)&=D_{{{\mathrm  {KL}}}}(P(X,Y)\|P(X)P(Y))\\&={\mathbb  {E}}_{X}\{D_{{{\mathrm  {KL}}}}(P(Y|X)\|P(Y))\}\\&={\mathbb  {E}}_{Y}\{D_{{{\mathrm  {KL}}}}(P(X|Y)\|P(X))\}\end{aligned}}
+
+  - 信息熵（en: Shannon entropy）和KL散度
+    {\displaystyle {\begin{aligned}H(X)&=\mathrm {(i)} \,\mathbb {E} _{x}\{I(x)\}\\&=\mathrm {(ii)} \log N-D_{\mathrm {KL} }(P(X)\|P_{U}(X))\end{aligned}}} {\begin{aligned}H(X)&={\mathrm  {(i)}}\,{\mathbb  {E}}_{x}\{I(x)\}\\&={\mathrm  {(ii)}}\log N-D_{{{\mathrm  {KL}}}}(P(X)\|P_{U}(X))\end{aligned}}
+
+  - 條件熵（en:conditional entropy）和KL散度
+    {\displaystyle {\begin{aligned}H(X|Y)&=\log N-D_{\mathrm {KL} }(P(X,Y)\|P_{U}(X)P(Y))\\&=\mathrm {(i)} \,\,\log N-D_{\mathrm {KL} }(P(X,Y)\|P(X)P(Y))-D_{\mathrm {KL} }(P(X)\|P_{U}(X))\\&=H(X)-I(X;Y)\\&=\mathrm {(ii)} \,\log N-\mathbb {E} _{Y}\{D_{\mathrm {KL} }(P(X|Y)\|P_{U}(X))\}\end{aligned}}} {\begin{aligned}H(X|Y)&=\log N-D_{{{\mathrm  {KL}}}}(P(X,Y)\|P_{U}(X)P(Y))\\&={\mathrm  {(i)}}\,\,\log N-D_{{{\mathrm  {KL}}}}(P(X,Y)\|P(X)P(Y))-D_{{{\mathrm  {KL}}}}(P(X)\|P_{U}(X))\\&=H(X)-I(X;Y)\\&={\mathrm  {(ii)}}\,\log N-{\mathbb  {E}}_{Y}\{D_{{{\mathrm  {KL}}}}(P(X|Y)\|P_{U}(X))\}\end{aligned}}
+
+  - 交叉熵（en:cross entropy）和KL散度
+    {\displaystyle \mathrm {H} (p,q)=\mathrm {E} _{p}[-\log q]=\mathrm {H} (p)+D_{\mathrm {KL} }(p\|q).\!} {\mathrm  {H}}(p,q)={\mathrm  {E}}_{p}[-\log q]={\mathrm  {H}}(p)+D_{{{\mathrm  {KL}}}}(p\|q).\!
+
+
 '''
 
 # discrited - ids => 
+
+class Node(object):
+  '''
+  # Description:
+    - basic node for constructing The Machine 
+    - the constructed graph should support asynchronous learning   
+  '''
+  def __init__(self, *args, **kwargs):
+    self.operation_set = []
+    self.input_set     = []
+    self.output_set    = []
+
+class DataType(object):
+  '''
+  TypeTree
+  - Natural Language 
+  - Image 
+  - Audio 
+  - Continuous Tensor
+  - Discrite Tensor 
+  '''
+  def __init__(self, *args , **kwargs):
+    pass
+
 
 class DataPreprocess(object):
     pass
