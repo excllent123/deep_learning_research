@@ -1,4 +1,7 @@
 # Author : Kent Chiu
+# Des : this module provide a tool for parsing label-data from vatic.txt
+# with coressponding video, and provide batch-pumping for training model
+
 
 import os, cv2
 import pandas as pd
@@ -11,12 +14,12 @@ from random import shuffle
 
 class VaticPreprocess(object):
     """
-    Description :  
-    - this module provide an interface for parsing label-data from vatic.txt 
+    # Description :  
+      this module provide an interface for parsing label-data from vatic.txt 
       with coressponding video, and provide batch-pumping for training 
       SGD-based model especially for Deep Learning such as CNN/RNN.
 
-    - this module is coupled by Yolo-detector and Vatic setting 
+      - this module is coupled by Yolo-detector and Vatic setting 
     """
     def __init__(self, fileName, mapList, detector=None, augmentation=True):
         '''
@@ -101,13 +104,13 @@ class VaticPreprocess(object):
 
     def genYOLO_foler_batch(self, folder, batch_size=16):
         '''
-        Description :
-        the img file in folder must only contain what we need  that is
-        preprocess by vatic which is in the format like  : numbers.png
+        # Description :
+          - the img file in folder must only contain what we need
+          - that is preprocess by vatic which is in the format like  : numbers.png
 
-        Return :
-        X : 4D tensor (batch_zie, W, H, C)
-        Y : 2D tensor (batch_zie, S*S*(5*B+C))
+        # Return :
+          - X : 4D tensor (batch_zie, W, H, C)
+          - Y : 2D tensor (batch_zie, S*S*(5*B+C))
         '''
         filelist = os.listdir(folder)
         shuffle(filelist)
@@ -119,7 +122,7 @@ class VaticPreprocess(object):
                 continue
             frameid = filename.split('.')[0]
             frame = imread(os.path.join(folder, filename))
-
+ 
             self._get_training_pair(frame, frameid)
             if self.batch % batch_size ==0 or len(filelist)==0 :
                 result_X = self.batch_X
@@ -133,10 +136,11 @@ class VaticPreprocess(object):
 
     def genYOLO_vid(self, vid, batch_size=16, max_num=10000):
         '''
-        Input : vid the video object from imageio 
-        Return : 
-        X : 4D tensor (batch_zie, W, H, C)
-        Y : 2D tensor (batch_zie, S*S*(5*B+C))
+        # Args : vid the video object from imageio 
+        
+        # Return : 
+          - X : 4D tensor (batch_zie, W, H, C)
+          - Y : 2D tensor (batch_zie, S*S*(5*B+C))
         '''
         for _ in range(max_num):
             frameid = np.random.randint(0, vid.get_length())

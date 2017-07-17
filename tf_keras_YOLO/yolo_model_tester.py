@@ -1,12 +1,14 @@
 import tensorflow as tf
 import keras.backend as K
 from keras.layers import Input
+from keras.models import model_from_json
+
 from yolo_layer import YoloDetector
 from yolo_preprocess import VaticPreprocess
 import imageio, cv2, argparse
 from skimage.io import imread
 import numpy as np
-from keras.models import model_from_json
+
 import relat_import
 
 
@@ -65,6 +67,7 @@ class YoloModelTestor:
         input_tensor = Input(shape=(H, W, 3))
         pred_y = self.model(input_tensor)
 
+
         with tf.Session() as sess :
             # tf.global_variables_initializer()
             sess.run()
@@ -96,13 +99,11 @@ class YoloModelTestor:
         trans_img = self._trans_test_img(img)
         output_tensor = self.model.predict(trans_img)
         bbx = self.detector.decode(output_tensor[0,:], threshold=threshold)
-        print (bbx)
 
         img_show = self._show_img(img)
 
         if save_path:
             raise NotImplementedError()
-
 
 
 # initialize the parameters
@@ -116,6 +117,7 @@ if __name__=='__main__':
     parser.add_argument('-w', '--weight_file', type=str)
     parser.add_argument('-j', '--json_file',   type=str)
 
+
     parser.add_argument('-v', '--vid_path',    type=str, 
                          help=' the input vid file path')
     parser.add_argument('-f', '--start_frame', type=int, default =1)
@@ -125,13 +127,16 @@ if __name__=='__main__':
                          help=' the image img file path')
     parser.add_argument('-o', '--outPut',      type=str, 
                          help='if specify output address, would save img to it')
+
     arg=parser.parse_args()
 
     # init cli parameters
     threshold   = arg.threshold
     weight_file = arg.weight_file if arg.weight_file else 'tf-keras-20161125-v7.h5'
     json_file   = arg.json_file if arg.json_file else '../hub/model/tf-keras-20161120.json'
+
     vid_path    = arg.vid_path if arg.vid_path else '../hub_data/vatic/vatic_id2/output.avi'    
+    
     start_frame = arg.start_frame if arg.start_frame< vid.get_length else 1
     end_frame = arg.end_frame if arg.end_frame < vid.get_length else vid..get_length
 

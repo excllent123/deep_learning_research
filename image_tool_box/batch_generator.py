@@ -71,7 +71,13 @@ except:
     from inspect import getargspec
 from ops_augmentator import ImgAugmentator
 
-class BatchGenerator():
+from multiprocessing import Pool
+
+gen = None
+def run(data):
+    return gen._apply_augment_op(data)
+
+class BatchGenerator(object):
     def __init__(self):
         self.augment_callbacks = []
         self.regist_ops = ImgAugmentator.__dict__
@@ -181,6 +187,7 @@ class ImgOneTagGenerator(BatchGenerator):
     '''
 
     def __init__(self, dir_path_list):
+        #super().__init__()
         BatchGenerator.__init__(self)
         self.dir_path_list = dir_path_list
         self.img_path_all  = []
@@ -190,7 +197,7 @@ class ImgOneTagGenerator(BatchGenerator):
                                       if s.split('.')[-1] in ('jpg', 'png')])
         self.cli_show()
 
-    def gen_balance_batch(self, batch_size, max_iter_per_epoch=10e4):
+    def gen_balance_batch(self, batch_size, max_iter_per_epoch=10e4, pool_=None):
         '''A generator of a balance batch pumping for classification
 
         # Args 
@@ -207,15 +214,17 @@ class ImgOneTagGenerator(BatchGenerator):
         assert batch_size % len(self.dir_path_list) ==0
 
         y_table = np.eye(len(self.dir_path_list))
-        func_ = self._apply_augment_op
         iter_num=0
+        func_ = self._apply_augment_op
         while iter_num < max_iter_per_epoch:
             batch_y = []
             batch_x = []
             for i in range(len(y_table)):
                 fpath_by_cls = self.img_path_all[i]
                 select = random.sample(range(0,len(fpath_by_cls)), batch_size)
+
                 batch_y += [ y_table[i] for _ in select]
+<<<<<<< HEAD
     
                 if self.pool:
                     po = Pool()
@@ -224,12 +233,25 @@ class ImgOneTagGenerator(BatchGenerator):
                     batch_x += w
                 else:
                     batch_x+=[func_(imread(fpath_by_cls[j])) for j in select]
+=======
+>>>>>>> e0a4af7470441a72b43e7bcb4e00b1ff5eef36f7
 
+                if pool_ : 
+                    # python 3 should work but python 2
+                    po = Pool(4)
+                    imgs = [imread(fpath_by_cls[j]) for j in select]
+                    res = po.map( self._apply_augment_op  , imgs)
+                    batch_x += res 
+                else:
+                    
+                    batch_x += [ func_(imread(fpath_by_cls[j])) for j in select]
+    
             iter_num+=1
             tmp = list(zip(batch_x, batch_y))
             random.shuffle(tmp)
             batch_x, batch_y = list(zip(*tmp))
-            yield np.array(batch_x), np.array(batch_y)
+            
+            yield  np.array(batch_x), np.array(batch_y)
 
     def add_single_dirpath(self, cls_index, dir_path):
         '''Perform add path to path_dataset
@@ -249,7 +271,6 @@ class ImgOneTagGenerator(BatchGenerator):
         self.img_path_all[cls_index] += new_file_list
         self.cli_show()
 
-
     def add_all_dirpath(self, dir_path_list):
         '''Perform add all_path 
 
@@ -268,4 +289,12 @@ class ImgOneTagGenerator(BatchGenerator):
 
     def cli_show(self):
         for i in range(len(self.img_path_all)):
+<<<<<<< HEAD
             print ('{} fills in calss {}'.format(len(self.img_path_all[i]), i))
+=======
+            print ('{} fills in calss {}'.format(
+                                         len(self.img_path_all[i]), i))
+
+
+
+>>>>>>> e0a4af7470441a72b43e7bcb4e00b1ff5eef36f7

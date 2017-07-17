@@ -15,6 +15,15 @@
 # ==============================================================================
 """Basic word2vec example."""
 
+# Step-Flow 
+# 1. get the data 
+# 2. segment the data 
+# 3. Tokenized the data (ids, one-hot encoder)
+# 4. Count the data 
+# 5. Build the dataset with freqncy 
+# 6. Crop the dataset 
+# 7. generate a training batch for the skip-gram model.
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -46,7 +55,7 @@ def maybe_download(filename, expected_bytes):
     raise Exception(
         'Failed to verify ' + filename + '. Can you get to it with a browser?')
   return filename
-
+# size check or hash-check 
 filename = maybe_download('text8.zip', 31344016)
 
 
@@ -138,6 +147,8 @@ num_skips = 2         # How many times to reuse an input to generate a label.
 valid_size = 16     # Random set of words to evaluate similarity on.
 valid_window = 100  # Only pick dev samples in the head of the distribution.
 valid_examples = np.random.choice(valid_window, valid_size, replace=False)
+
+# NCE parameters
 num_sampled = 64    # Number of negative examples to sample.
 
 graph = tf.Graph()

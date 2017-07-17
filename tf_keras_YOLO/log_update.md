@@ -1,8 +1,7 @@
 
-Test Record.
+# Dev Record.
 
-### /sct_test/test_yolo_preprocess & YOLO/yolo_preprocess
-(2016-11-10)
+### /sct_test/test_yolo_preprocess & YOLO/yolo_preprocess (2016-11-10)
 build the preprocesser for image batch generater
 build the unit-test
 
@@ -39,23 +38,24 @@ be aware of sess(init)
 modification of the yolo-preprocessor 
 now need to add detector explicitly 
 
-### test tensorflow saving mechnism => keep find no file 
+### test tensorflow saving mechnism => keep find no file ( 2016-11-18)
 Better to when you saving with ckpt, it would auto-add **-1** or **-2**  
 save_path = saver.save(sess, "../hub/model/20161118.ckpt",global_step=epoch )
 saver.restore(sess, "../hub/model/20161118.ckpt-{}".format(epoch))
 
 
-### Training 
+### Training (2016-11-19) 
 - tf-keras-20161125.py
 - tf-keras-20151129.py
-add recoler (color jitter) 
 
-### Add testing-sct : test-tf-keras-yolo.py
+### add recoler/color jitter (2016-12-12)
 
-### Add Tensorboard Wrap with tf-keras
+### Add testing-sct : test-tf-keras-yolo.py (2016-12-13)
+
+### Add Tensorboard Wrap with tf-keras (2016-12-14)
 - tf-keras-board.py
 
-### Add Data Augmentation with Affine and horizontal flip
+### Add Data Augmentation with Affine and horizontal flip (2016-12-15)
 this horizontal flip and a liitle bit scale and shift helps yolo to prevent overfit on position.
 
 

@@ -1,4 +1,6 @@
-
+'''
+For segmentation
+'''
 def get_model()
     inputs = Input((img_rows, img_cols, 3))
     conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(inputs)

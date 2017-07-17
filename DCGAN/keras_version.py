@@ -84,37 +84,68 @@ def train(BATCH_SIZE):
 
     discriminator = discriminator_model()
     generator = generator_model()
+
+
     discriminator_on_generator = \
         generator_containing_discriminator(generator, discriminator)
+
+
     d_optim = SGD(lr=0.0005, momentum=0.9, nesterov=True)
     g_optim = SGD(lr=0.0005, momentum=0.9, nesterov=True)
+
+    # we are not going to train genrator, just use to predict/generate img
     generator.compile(loss='binary_crossentropy', optimizer="SGD")
+
+    # we are going to train-generator in following for-loop
     discriminator_on_generator.compile(
         loss='binary_crossentropy', optimizer=g_optim)
+
+    # trian discriminator in following for-loop 
     discriminator.trainable = True
     discriminator.compile(loss='binary_crossentropy', optimizer=d_optim)
+
+    # init the noise, which is the one-dimension vector (the seed)
     noise = np.zeros((BATCH_SIZE, 100))
+
+
     for epoch in range(100):
         print("Epoch is", epoch)
         print("Number of batches", int(X_train.shape[0]/BATCH_SIZE))
         for index in range(int(X_train.shape[0]/BATCH_SIZE)):
+
+            # init the seed 
             for i in range(BATCH_SIZE):
                 noise[i, :] = np.random.uniform(-1, 1, 100)
+
             image_batch = X_train[index*BATCH_SIZE:(index+1)*BATCH_SIZE]
             generated_images = generator.predict(noise, verbose=0)
+
+            # visulize the generated img
             if index % 20 == 0:
                 image = combine_images(generated_images)
                 image = image*127.5+127.5
                 Image.fromarray(image.astype(np.uint8)).save(
                     str(epoch)+"_"+str(index)+".png")
 
+            # prepare the training-pair of the discriminator
             X = np.concatenate((image_batch, generated_images))
+
+            # y mapping the real-image-batch + generated_images
             y = [1] * BATCH_SIZE + [0] * BATCH_SIZE
+
+            # train discriminator here
             d_loss = discriminator.train_on_batch(X, y)
+
             print("batch %d d_loss : %f" % (index, d_loss))
+
             for i in range(BATCH_SIZE):
                 noise[i, :] = np.random.uniform(-1, 1, 100)
+
+            # here we set the discriminator not trainable, and train generator only
             discriminator.trainable = False
+
+            # in-here, the discriminator only recive fack-data, 
+            # but we want [y] be high thus form a adversary training 
             g_loss = discriminator_on_generator.train_on_batch(
                 noise, [1] * BATCH_SIZE)
             discriminator.trainable = True
