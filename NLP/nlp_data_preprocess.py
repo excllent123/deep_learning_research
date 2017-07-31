@@ -144,7 +144,6 @@ I understand it is pythonic to simply do this:
 
 
 
-
 @ DAG with NLP-machine, the machine 
 
 @ KL散度和其它量的關係[編輯]
@@ -162,6 +161,8 @@ I understand it is pythonic to simply do this:
 
   - 交叉熵（en:cross entropy）和KL散度
     {\displaystyle \mathrm {H} (p,q)=\mathrm {E} _{p}[-\log q]=\mathrm {H} (p)+D_{\mathrm {KL} }(p\|q).\!} {\mathrm  {H}}(p,q)={\mathrm  {E}}_{p}[-\log q]={\mathrm  {H}}(p)+D_{{{\mathrm  {KL}}}}(p\|q).\!
+
+
 
 
 '''
