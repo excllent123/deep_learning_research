@@ -73,7 +73,21 @@ def residual_fn(x, y):
   return common_layers.s(x + tf.nn.dropout(
       y, 1.0 - hparams.residual_dropout))
 
+import numpy as np 
+import tensorflow as tf
+import tensorflow as tf 
 
+tf.
+
+data = np.random.random_sample((3,2,2))
+print (data)
+# np.array()
+
+x = tf.get_variable('input')
+
+with tf.Session() as sess:
+    sess.run(tf.global_)
+    y = sess.run(layer_norm(x))
 
 
 def conv_hidden_relu(inputs,
