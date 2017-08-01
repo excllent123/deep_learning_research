@@ -61,6 +61,9 @@
 import numpy as np
 import os
 from skimage.io import imread
+import multiprocess as mp
+from multiprocessing.pool import Pool
+
 import random 
 try :
     from inspect import signature
@@ -82,6 +85,7 @@ class BatchGenerator(object):
         self.train_data = None
         self.valid_data = None
         self.test_data  = None 
+        self.pool       = None
 
     def to_hdf(self, batch_size):
         '''Perform serialization with augmented data Pair to hdf '''
@@ -158,6 +162,7 @@ class ImgOneTagGenerator(BatchGenerator):
 
     # Fuctions:
       - gen_balance_batch
+      - if set self.pool=True => apply multiprocessing.pool.Pool().map_asnc 
 
     # Usage : 
         ```
@@ -219,6 +224,17 @@ class ImgOneTagGenerator(BatchGenerator):
                 select = random.sample(range(0,len(fpath_by_cls)), batch_size)
 
                 batch_y += [ y_table[i] for _ in select]
+<<<<<<< HEAD
+    
+                if self.pool:
+                    po = Pool()
+                    res = po.map_async(func_, [imread(fpath_by_cls[j]) for j in select]).get()
+                    w = res.get()
+                    batch_x += w
+                else:
+                    batch_x+=[func_(imread(fpath_by_cls[j])) for j in select]
+=======
+>>>>>>> e0a4af7470441a72b43e7bcb4e00b1ff5eef36f7
 
                 if pool_ : 
                     # python 3 should work but python 2
@@ -265,16 +281,20 @@ class ImgOneTagGenerator(BatchGenerator):
         if len(dir_path_list)!=len(self.img_path_all):
             raise ValueError('the length of dir_path_list'
                              ' is not equal to original buld')
-        for dir_path in dir_path_list:
-            self.img_path_all +=[os.path.join(dir_path, s) \
-                                      for s in os.listdir(dir_path) \
-                                      if s.split('.')[-1] in ('jpg', 'png')]
+        for i, dir_path in enumerate(dir_path_list):
+            self.img_path_all[i] +=[os.path.join(dir_path, s) \
+                                    for s in os.listdir(dir_path) \
+                                    if s.split('.')[-1] in ('jpg', 'png')]
         self.cli_show()
 
     def cli_show(self):
         for i in range(len(self.img_path_all)):
+<<<<<<< HEAD
+            print ('{} fills in calss {}'.format(len(self.img_path_all[i]), i))
+=======
             print ('{} fills in calss {}'.format(
                                          len(self.img_path_all[i]), i))
 
 
 
+>>>>>>> e0a4af7470441a72b43e7bcb4e00b1ff5eef36f7
