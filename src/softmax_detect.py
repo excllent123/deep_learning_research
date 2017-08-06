@@ -8,6 +8,7 @@ import cv2
 # use gc.collect() to manually release the memory in each iteration
 
 
+
 def singleton(class_):
   instances = {}
   def getinstance(*args, **kwargs):

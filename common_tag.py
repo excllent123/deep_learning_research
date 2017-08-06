@@ -13,6 +13,12 @@ class Tag(set):
             return wrapper
         return decorator
 
+import tensorflow as tf
+
+import numpy as np
+
+tf.add
+
 if __name__ == '__main__':
 
     @Tag.add('a')
