@@ -1,0 +1,422 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="python">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>image_tool_box.img_augmentator module &#8212; ImageTrainingTool 0.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="ImageTrainingTool 0.0.0 documentation" href="../index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-image_tool_box.img_augmentator">
+<span id="image-tool-box-img-augmentator-module"></span><h1>image_tool_box.img_augmentator module<a class="headerlink" href="#module-image_tool_box.img_augmentator" title="Permalink to this headline">¶</a></h1>
+<dl class="docutils">
+<dt># Description :</dt>
+<dd><ul class="first last simple">
+<li>To augmentating image is important in training DNN.</li>
+<li>There are multiple ways to perform augmentation</li>
+<li>such as in tf.train &amp; keras.preprocess</li>
+<li>tflearn</li>
+</ul>
+</dd>
+<dt># Functionalities :</dt>
+<dd><ul class="first simple">
+<li>image data augmentation ops</li>
+<li>image-tensor = (height, wid, channel)</li>
+</ul>
+<p class="last">[serialization : single or multipile batch-per-record with augmentation]
+- from dictionary to tf-record 
+- from dictionary to hdf5</p>
+</dd>
+<dt># Image IO Conditions &lt;batch-size&gt;, &lt;io-mode&gt;</dt>
+<dd><p class="first">[image-classification ]
+- from dictionary to batch-pair &lt;with balance pumping&gt;</p>
+<blockquote>
+<div><a href="#id1"><span class="problematic" id="id2">|</span></a>-&gt; single - tag - prediction</div></blockquote>
+<p>[image-detections, image-caption, image-multi-tag]
+- file-file maping (img vs target-file)</p>
+<blockquote class="last">
+<div><a href="#id3"><span class="problematic" id="id4">|</span></a>-&gt; multi  - tag - prediction
+<a href="#id5"><span class="problematic" id="id6">|</span></a>-&gt; tag-tree(yolo-9000)
+<a href="#id7"><span class="problematic" id="id8">|</span></a>-&gt; yolo</div></blockquote>
+</dd>
+<dt># Augmentation Functions</dt>
+<dd><p class="first">[data-preprocess]
+- sample-wise-normalization
+- rescale
+- filter outlier if any</p>
+<p class="last">[affine-transformation-base]
+- (1) random_rotation 
+- (2) random_shift
+- (3) random_zoom
+- (4) random_crop
+- (5) random_black
+- (6) random_blur
+- (7) random_color_space
+- (8) random_color_jitter</p>
+</dd>
+<dt># Segmentation</dt>
+<dd>[about 8 ways to segment the image]
+- (1) Histogram Thresholding 
+- (2) Color Clusttering (like slic in skimage) [This](<a class="reference external" href="http://sharky93.github.io/docs/dev/auto_examples/plot_segmentations.html">http://sharky93.github.io/docs/dev/auto_examples/plot_segmentations.html</a>)
+- (3) Region growing, region splitting and merging 
+- (4) Edge-base (canny, boble ... etc)
+- (5) Physical Model-base 
+- (6) Fuzzy Approach
+- (7) Neural Network (deep segment)
+- (8) Generic Algorithm</dd>
+<dt># Segmentation Functions:</dt>
+<dd><ul class="first last simple">
+<li>TBD</li>
+</ul>
+</dd>
+</dl>
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.array_to_img">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">array_to_img</code><span class="sig-paren">(</span><em>x</em>, <em>data_format=None</em>, <em>scale=True</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.array_to_img" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a 3D Numpy array to a PIL Image instance.</p>
+<dl class="docutils">
+<dt># Arguments</dt>
+<dd><p class="first">x: Input Numpy array.
+data_format: Image data format.
+scale: Whether to rescale image values</p>
+<blockquote class="last">
+<div>to be within [0, 255].</div></blockquote>
+</dd>
+<dt># Returns</dt>
+<dd>A PIL Image instance.</dd>
+<dt># Raises</dt>
+<dd>ImportError: if PIL is not available.
+ValueError: if invalid <cite>x</cite> or <cite>data_format</cite> is passed.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.center_crop">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">center_crop</code><span class="sig-paren">(</span><em>x</em>, <em>crop_size</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.center_crop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs center crop 
+Args :</p>
+<blockquote>
+<div><ul class="simple">
+<li>crop_size : is the window with (h, w), assert tuple input</li>
+</ul>
+</div></blockquote>
+<dl class="docutils">
+<dt>Note</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier"></span><dd><ul class="first last simple">
+<li>this operatoin would change the img size</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.featurewise_center">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">featurewise_center</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.featurewise_center" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs x -= mean(x)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.featurewise_std_normalization">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">featurewise_std_normalization</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.featurewise_std_normalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs x /= std(x)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.img_to_array">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">img_to_array</code><span class="sig-paren">(</span><em>img</em>, <em>data_format=None</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.img_to_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a PIL Image instance to a Numpy array.</p>
+<dl class="docutils">
+<dt># Arguments</dt>
+<dd>img: PIL Image instance.
+data_format: Image data format.</dd>
+<dt># Returns</dt>
+<dd>A 3D Numpy array.</dd>
+<dt># Raises</dt>
+<dd>ValueError: if invalid <cite>img</cite> or <cite>data_format</cite> is passed.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.list_pictures">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">list_pictures</code><span class="sig-paren">(</span><em>directory</em>, <em>ext='jpg|jpeg|bmp|png'</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.list_pictures" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.load_img">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">load_img</code><span class="sig-paren">(</span><em>path</em>, <em>grayscale=False</em>, <em>target_size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.load_img" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads an image into PIL format.</p>
+<dl class="docutils">
+<dt># Arguments</dt>
+<dd><p class="first">path: Path to image file
+grayscale: Boolean, whether to load the image as grayscale.
+target_size: Either <cite>None</cite> (default to original size)</p>
+<blockquote class="last">
+<div>or tuple of ints <cite>(img_height, img_width)</cite>.</div></blockquote>
+</dd>
+<dt># Returns</dt>
+<dd>A PIL Image instance.</dd>
+<dt># Raises</dt>
+<dd>ImportError: if PIL is not available.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.normaliza">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">normaliza</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.normaliza" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs <a href="#id9"><span class="problematic" id="id10">*</span></a>=1/255.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.random_channel_shift">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">random_channel_shift</code><span class="sig-paren">(</span><em>x</em>, <em>intensity</em>, <em>channel_axis=2</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.random_channel_shift" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.random_crop">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">random_crop</code><span class="sig-paren">(</span><em>x</em>, <em>crop_size</em>, <em>sync_seed=None</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.random_crop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs random crop</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>crop_size : is the window with (h, w), assert tuple input</li>
+</ul>
+</dd>
+<dt>Note</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier"></span><dd><ul class="first last simple">
+<li>this operatoin would change the img size</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.random_flip_axis">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">random_flip_axis</code><span class="sig-paren">(</span><em>x</em>, <em>axis</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.random_flip_axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs random flips of image</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>axis : axis=0 (row-axis) for vertical ; axis=1 for horizontal</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.random_rotation">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">random_rotation</code><span class="sig-paren">(</span><em>x</em>, <em>rg</em>, <em>row_axis=0</em>, <em>col_axis=1</em>, <em>channel_axis=2</em>, <em>fill_mode='nearest'</em>, <em>cval=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.random_rotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs a random rotation of a Numpy image tensor.</p>
+<dl class="docutils">
+<dt># Arguments</dt>
+<dd><p class="first">x: Input tensor. Must be 3D.
+rg: Rotation range, in degrees.
+row_axis: Index of axis for rows in the input tensor.
+col_axis: Index of axis for columns in the input tensor.
+channel_axis: Index of axis for channels in the input tensor.
+fill_mode: Points outside the boundaries of the input</p>
+<blockquote>
+<div>are filled according to the given mode
+(one of <cite>{&#8216;constant&#8217;, &#8216;nearest&#8217;, &#8216;reflect&#8217;, &#8216;wrap&#8217;}</cite>).</div></blockquote>
+<dl class="last docutils">
+<dt>cval: Value used for points outside the boundaries</dt>
+<dd>of the input if <cite>mode=&#8217;constant&#8217;</cite>.</dd>
+</dl>
+</dd>
+<dt># Returns</dt>
+<dd>Rotated Numpy image tensor.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.random_shear">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">random_shear</code><span class="sig-paren">(</span><em>x</em>, <em>intensity</em>, <em>row_axis=0</em>, <em>col_axis=1</em>, <em>channel_axis=2</em>, <em>fill_mode='nearest'</em>, <em>cval=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.random_shear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs a random spatial shear of a Numpy image tensor.</p>
+<dl class="docutils">
+<dt># Arguments</dt>
+<dd><p class="first">x: Input tensor. Must be 3D.
+intensity: Transformation intensity.
+row_axis: Index of axis for rows in the input tensor.
+col_axis: Index of axis for columns in the input tensor.
+channel_axis: Index of axis for channels in the input tensor.
+fill_mode: Points outside the boundaries of the input</p>
+<blockquote>
+<div>are filled according to the given mode
+(one of <cite>{&#8216;constant&#8217;, &#8216;nearest&#8217;, &#8216;reflect&#8217;, &#8216;wrap&#8217;}</cite>).</div></blockquote>
+<dl class="last docutils">
+<dt>cval: Value used for points outside the boundaries</dt>
+<dd>of the input if <cite>mode=&#8217;constant&#8217;</cite>.</dd>
+</dl>
+</dd>
+<dt># Returns</dt>
+<dd>Sheared Numpy image tensor.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.random_shift">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">random_shift</code><span class="sig-paren">(</span><em>x</em>, <em>wrg</em>, <em>hrg</em>, <em>row_axis=0</em>, <em>col_axis=1</em>, <em>channel_axis=2</em>, <em>fill_mode='nearest'</em>, <em>cval=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.random_shift" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs a random spatial shift of a Numpy image tensor.</p>
+<dl class="docutils">
+<dt># Arguments</dt>
+<dd><p class="first">x: Input tensor. Must be 3D.
+wrg: Width shift range, as a float fraction of the width.
+hrg: Height shift range, as a float fraction of the height.
+row_axis: Index of axis for rows in the input tensor.
+col_axis: Index of axis for columns in the input tensor.
+channel_axis: Index of axis for channels in the input tensor.
+fill_mode: Points outside the boundaries of the input</p>
+<blockquote>
+<div>are filled according to the given mode
+(one of <cite>{&#8216;constant&#8217;, &#8216;nearest&#8217;, &#8216;reflect&#8217;, &#8216;wrap&#8217;}</cite>).</div></blockquote>
+<dl class="last docutils">
+<dt>cval: Value used for points outside the boundaries</dt>
+<dd>of the input if <cite>mode=&#8217;constant&#8217;</cite>.</dd>
+</dl>
+</dd>
+<dt># Returns</dt>
+<dd>Shifted Numpy image tensor.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.random_zoom">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">random_zoom</code><span class="sig-paren">(</span><em>x</em>, <em>zoom_range</em>, <em>row_axis=0</em>, <em>col_axis=1</em>, <em>channel_axis=2</em>, <em>fill_mode='nearest'</em>, <em>cval=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.random_zoom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs a random spatial zoom of a Numpy image tensor.</p>
+<dl class="docutils">
+<dt># Arguments</dt>
+<dd><p class="first">x: Input tensor. Must be 3D.
+zoom_range: Tuple of floats; zoom range for width and height.
+row_axis: Index of axis for rows in the input tensor.
+col_axis: Index of axis for columns in the input tensor.
+channel_axis: Index of axis for channels in the input tensor.
+fill_mode: Points outside the boundaries of the input</p>
+<blockquote>
+<div>are filled according to the given mode
+(one of <cite>{&#8216;constant&#8217;, &#8216;nearest&#8217;, &#8216;reflect&#8217;, &#8216;wrap&#8217;}</cite>).</div></blockquote>
+<dl class="last docutils">
+<dt>cval: Value used for points outside the boundaries</dt>
+<dd>of the input if <cite>mode=&#8217;constant&#8217;</cite>.</dd>
+</dl>
+</dd>
+<dt># Returns</dt>
+<dd>Zoomed Numpy image tensor.</dd>
+<dt># Raises</dt>
+<dd>ValueError: if <cite>zoom_range</cite> isn&#8217;t a tuple.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.rescale">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">rescale</code><span class="sig-paren">(</span><em>x</em>, <em>factor</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.rescale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs rescale of the image factor</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.resize">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">resize</code><span class="sig-paren">(</span><em>x</em>, <em>size</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.resize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs resizing the image like cv2.resize</p>
+<dl class="docutils">
+<dt># Args:</dt>
+<dd><ul class="first last simple">
+<li>size : the size of img_height and img width, ex (200,200)</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.sample_mean_center">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">sample_mean_center</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.sample_mean_center" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs image_based mean-zero and rescale to [-1,1]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="image_tool_box.img_augmentator.two_tail_normalize">
+<code class="descclassname">image_tool_box.img_augmentator.</code><code class="descname">two_tail_normalize</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#image_tool_box.img_augmentator.two_tail_normalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs -=127.5 and <a href="#id11"><span class="problematic" id="id12">*</span></a>=1/127.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/image_tool_box/image_tool_box.img_augmentator.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Kent.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="../_sources/image_tool_box/image_tool_box.img_augmentator.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

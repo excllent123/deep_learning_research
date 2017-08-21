@@ -13,11 +13,5 @@ def get_summary_op(model, loss):
     return summary_op
 
 
-# tensorboard --logdir=/full_path_to_your_logs
-# in Session
-# writer = tf.trian.SummaryWriter(logs_path=log_dir, graph=tf.get_default_graph())
-# _, summary = sess.run([train_op, summary_op], feed_dict = feed_dict(Flase).... )
-# writer.add_summary(summary, epoch*batch_count+ i ..)
-# or writer.add_summary(summary_str, epoch)
 
 

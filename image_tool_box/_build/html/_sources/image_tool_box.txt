@@ -1,0 +1,102 @@
+image_tool_box package
+======================
+
+Submodules
+----------
+
+image_tool_box.batch_generator module
+-------------------------------------
+
+.. automodule:: image_tool_box.batch_generator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+image_tool_box.cnn_factory module
+---------------------------------
+
+.. automodule:: image_tool_box.cnn_factory
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+image_tool_box.conf module
+--------------------------
+
+.. automodule:: image_tool_box.conf
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+image_tool_box.img_augmentator module
+-------------------------------------
+
+.. automodule:: image_tool_box.img_augmentator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+image_tool_box.keras_transfer module
+------------------------------------
+
+.. automodule:: image_tool_box.keras_transfer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+image_tool_box.learn_to_localize module
+---------------------------------------
+
+.. automodule:: image_tool_box.learn_to_localize
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+image_tool_box.main module
+--------------------------
+
+.. automodule:: image_tool_box.main
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+image_tool_box.ops_augmentator module
+-------------------------------------
+
+.. automodule:: image_tool_box.ops_augmentator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+image_tool_box.ops_descriptor module
+------------------------------------
+
+.. automodule:: image_tool_box.ops_descriptor
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+image_tool_box.ops_segmetator module
+------------------------------------
+
+.. automodule:: image_tool_box.ops_segmetator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+image_tool_box.port_scan module
+-------------------------------
+
+.. automodule:: image_tool_box.port_scan
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: image_tool_box
+    :members:
+    :undoc-members:
+    :show-inheritance:
