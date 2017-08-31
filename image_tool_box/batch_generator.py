@@ -198,18 +198,17 @@ class ImgOneTagGenerator(BatchGenerator):
         self.cli_show()
 
     def gen_balance_batch(self, batch_size, max_iter_per_epoch=10e4, pool_=None):
-        '''A generator of a balance batch pumping for classification
+        '''
+          A generator of a balance batch pumping for classification
+          # Args 
+            - batch_size : batch_size
+            - max_iter_per_epoch : default 10e4, 
 
-        # Args 
-          - batch_size : batch_size
-          - max_iter_per_epoch : default 10e4, 
-
-        # Usage : 
-          ```
-          # keras 
-          # tensorflow 
-          # pytorch
-          ```
+          # Usage : 
+            ```
+            # keras 
+            # tensorflow 
+            ```
         '''
         assert batch_size % len(self.dir_path_list) ==0
 
@@ -224,8 +223,7 @@ class ImgOneTagGenerator(BatchGenerator):
                 select = random.sample(range(0,len(fpath_by_cls)), batch_size)
 
                 batch_y += [ y_table[i] for _ in select]
-<<<<<<< HEAD
-    
+
                 if self.pool:
                     po = Pool()
                     res = po.map_async(func_, [imread(fpath_by_cls[j]) for j in select]).get()
@@ -233,19 +231,7 @@ class ImgOneTagGenerator(BatchGenerator):
                     batch_x += w
                 else:
                     batch_x+=[func_(imread(fpath_by_cls[j])) for j in select]
-=======
->>>>>>> e0a4af7470441a72b43e7bcb4e00b1ff5eef36f7
 
-                if pool_ : 
-                    # python 3 should work but python 2
-                    po = Pool(4)
-                    imgs = [imread(fpath_by_cls[j]) for j in select]
-                    res = po.map( self._apply_augment_op  , imgs)
-                    batch_x += res 
-                else:
-                    
-                    batch_x += [ func_(imread(fpath_by_cls[j])) for j in select]
-    
             iter_num+=1
             tmp = list(zip(batch_x, batch_y))
             random.shuffle(tmp)
@@ -289,12 +275,7 @@ class ImgOneTagGenerator(BatchGenerator):
 
     def cli_show(self):
         for i in range(len(self.img_path_all)):
-<<<<<<< HEAD
             print ('{} fills in calss {}'.format(len(self.img_path_all[i]), i))
-=======
-            print ('{} fills in calss {}'.format(
-                                         len(self.img_path_all[i]), i))
 
-
-
->>>>>>> e0a4af7470441a72b43e7bcb4e00b1ff5eef36f7
+class DataFrameGenerator(BatchGenerator):
+  pass

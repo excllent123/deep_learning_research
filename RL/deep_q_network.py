@@ -193,8 +193,8 @@ class DeepQNetwork:
             [self.q_next, self.q_eval],
             feed_dict={
                 # iloc : slice row
-                self.s_: batch_memory.iloc[:, -self.n_features:],
-                self.s: batch_memory.iloc[:, :self.n_features]
+                self.s_ : batch_memory.iloc[:, -self.n_features:],
+                self.s  : batch_memory.iloc[:, :self.n_features]
             })
 
         # change q_target w.r.t q_eval's action

@@ -1,9 +1,4 @@
 
-import tensorflow as tf 
-
-
-
-
 # Author : Kent Chiu & Grus
 
 from keras.layers.convolutional import Convolution2D, MaxPooling2D

@@ -21,7 +21,7 @@
     An information retrieval technique using latent semantic structure 
     was patented in 1988 (US Patent 4,839,853, now expired) 
 
-@ singular value decomposition (SVD)
+@ Singular Value Decomposition (SVD)
   -  In linear algebra, an orthogonal matrix or real orthogonal matrix 
      is a square matrix with real entries 
     whose columns and rows are orthogonal unit vectors 
