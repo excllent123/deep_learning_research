@@ -364,3 +364,4 @@ def test_data_generator(max_iteration, batch_size):
 
 def valid_data_generator(max_iteration, batch_size):
     pass
+
