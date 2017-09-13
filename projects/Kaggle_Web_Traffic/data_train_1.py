@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd 
 import tensorflow as tf
 import data_model as model_hub
+from data_generator import gen_data
+from tensorflow.contrib.keras import backend as K 
 
 # Load Data 
 df = pd.read_csv('train_1.csv')
@@ -25,26 +27,23 @@ hpara = {'his_window':10,
 PLD = tf.placeholder
 p_X          = PLD(tf.float32, [None, hpara['his_window']])
 p_dateTime   = PLD(tf.float32, [None, 5 * hpara['his_window']])
-p_tpcName    = PLD(tf.int16  , [None, 35])
+p_tpcName    = PLD(tf.int32  , [None, 35])
 p_tpcFeature = PLD(tf.float32, [None, 4])
 p_rawLeng    = PLD(tf.float32, [None, 1])
-p_truY       = PLD(tf.float32, [None, hpara['his_window']])
+p_truY       = PLD(tf.float32, [None, hpara['predict_window']])
 
 # build graph
 out = model_hub.model_001(p_X, p_dateTime, p_tpcName, p_tpcFeature, hpara)
 
-loss_op = log_seq_rmse(p_truY,
-	                   out, 
+loss_op = model_hub.log_seq_rmse(p_truY, out, 
                        sequence_lengths = [hpara['predict_window']],
                        max_sequence_length = hpara['predict_window'])
 
 train_op = tf.train.AdamOptimizer().minimize(loss_op)
 
 with tf.Session() as sess:
+    K.set_session(sess)
     sess.run(tf.global_variables_initializer())
-    #c = sess.run(lstm_layer(pld_b, [2], 3),  feed_dict={ pld_a:a, pld_b:b })
-    #c = sess.run(out, feed_dict={ pld_a:a, pld_b:b, pld_c:c })
-
 
     a,b,c,d,e, f =  gen_data(**hpara)    
 
@@ -55,7 +54,7 @@ with tf.Session() as sess:
         p_tpcFeature : d,
         p_rawLeng    : e,
         p_truY       : f,
-    }
+        K.learning_phase(): 0, }
 
     lo, _ = sess.run([loss_op, train_op], feed_dict=feed_dict)
     print (lo)
