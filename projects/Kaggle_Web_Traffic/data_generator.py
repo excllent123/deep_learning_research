@@ -28,7 +28,7 @@ def gen_data(his_window,
              tpc_feature,
              raw_leng, 
              batch_size=50, 
-             verbose=1):
+             verbose=1, **kwargs):
     '''
      Args:
      - his_window : max_length of sequence data 
