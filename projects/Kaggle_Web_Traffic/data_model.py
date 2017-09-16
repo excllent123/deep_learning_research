@@ -23,9 +23,8 @@ def model_001(p_X, p_dateTime, p_tpcName, p_tpcFeature, hpara):
 	b = lstm_dense_on_datetime(p_dateTime, hidden_dim, hpara)
 
 	a_b = tf.add(a, b)
-	
-
-	emb_weight = tf.get_variable('tcp_name_weight', shape=[35, hidden_dim])
+	# 
+	emb_weight = tf.get_variable('tcp_name_weight', shape=[54175 , hidden_dim])
 	c = tf.nn.embedding_lookup(emb_weight, [p_tpcName])
 	c = tf.reshape(c, shape=[hpara['batch_size'], 35* hidden_dim])
 	c = tf.contrib.keras.layers.Dense(50)(c)
