@@ -31,7 +31,7 @@ p_rawLeng    = PLD(tf.float32, [None, 1])
 p_truY       = PLD(tf.float32, [None, hpara['his_window']])
 
 # build graph
-out = model_hub.model_001(p_X, p_dateTime, p_tpcName, p_tpcFeature, hpara)
+out = model_hub.model_002(p_X, p_dateTime, p_tpcName, p_tpcFeature, hpara)
 
 loss_op = log_seq_rmse(p_truY,
 	                   out, 
