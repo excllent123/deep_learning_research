@@ -37,36 +37,40 @@ def model_001(p_X, p_dateTime, p_tpcName, p_tpcFeature, hpara):
 	return out
 
 def model_002(p_X, p_dateTime, p_tpcName, p_tpcFeature, hpara):
-	a = lstm_dense_on_X(p_X, int(1.5*hpara['his_window']), hpara)
-	b = tf.contrib.keras.layers.Dense( int(1.5*hpara['his_window']/2) )(p_dateTime)
+	hidden_dim = 100
+	a = lstm_dense_on_X(p_X, hidden_dim, hpara)
+	b = tf.contrib.keras.layers.Dense( int(hidden_dim/2) )(p_dateTime)
 	a_b = tf.add(a, b)
 
 	emb_weight = tf.get_variable('tcp_name_weight', shape=[35, hidden_dim])
 	c = tf.nn.embedding_lookup(emb_weight, [p_tpcName])
 	c = tf.reshape(c, shape=[hpara['batch_size'], 35* hidden_dim])
-	c = tf.contrib.keras.layers.Dense(50)(c)
+	c = tf.contrib.keras.layers.Dense(int(hidden_dim/2))(c)
 
 	out = tf.concat([a_b, c],1)
 
+	out = tf.expand_dims(out, axis=2)
+
 	out = tf.contrib.keras.layers.Conv1D(8, kernel_size=3, 
-		padding='causal', activation='elu', dilation_rate=2)(out)
+		padding='same', activation='elu', dilation_rate=2)(out)
 	
 	out = tf.contrib.keras.layers.Conv1D(8, kernel_size=3, 
-		padding='causal', activation='elu', dilation_rate=2)(out)
+		padding='same', activation='elu', dilation_rate=2)(out)
 
 	out = tf.contrib.keras.layers.MaxPooling1D()(out)
 
-	out = tf.contrib.keras.layers.Conv1D(8, kernel_size=3, 
-		padding='causal', activation='elu', dilation_rate=2)(out)
+	out = tf.contrib.keras.layers.Conv1D(16, kernel_size=3, 
+		padding='same', activation='elu', dilation_rate=1)(out)
 	
-	out = tf.contrib.keras.layers.Conv1D(8, kernel_size=3, 
-		padding='causal', activation='elu', dilation_rate=2)(out)
+	out = tf.contrib.keras.layers.Conv1D(16, kernel_size=3, 
+		padding='same', activation='elu', dilation_rate=1)(out)
 
 	out = tf.contrib.keras.layers.MaxPooling1D()(out)
+	out = tf.contrib.keras.layers.Flatten()(out)
 
-	out = tf.contrib.keras.layers.Dropout(0.33)(out)
+	out = tf.contrib.keras.layers.Dropout(0.1)(out)
 	out = tf.contrib.keras.layers.Dense(hpara['predict_window'])(out)
-	out = tf.contrib.keras.layers.Dropout(0.4)(out)
+	out = tf.contrib.keras.layers.Dropout(0.1)(out)
 	out = tf.contrib.keras.layers.Dense(hpara['predict_window'])(out)
 	return out
 	

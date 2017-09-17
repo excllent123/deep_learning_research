@@ -6,7 +6,7 @@ from data_generator import gen_data
 from tensorflow.contrib.keras import backend as K 
 from tqdm import tqdm
 import os
-
+import data_confhub as CONF
 
 def train_loop(sess, 
     max_iter, 
@@ -54,30 +54,14 @@ if __name__ =='__main__':
     tpc_name = np.load('tpc_name.npy')
     tpc_feature = np.load('tpc_feature.npy', mmap_mode='r')
     raw_leng = np.load('tpc_raw_leng.npy', mmap_mode='r')    
-
+    hpara = CONF.hpara3
+    hpara.update({       
+         'df': df,  
+         'tpc_name':tpc_name, 
+         'tpc_feature':tpc_feature,
+         'raw_leng': raw_leng, })
     # Cofig
-    hpara = {'his_window':20,
-             'gap':10,
-             'predict_window': 10,
-             'df': df,  
-             'tpc_name':tpc_name, 
-             'tpc_feature':tpc_feature,
-             'raw_leng': raw_leng, 
-             'batch_size':10, 
-             'epoch':10,
-             'verbose':0,
-             'model_save_pth':'model'}
-    hpara = {'his_window':30,
-             'gap':10,
-             'predict_window': 5,
-             'df': df,  
-             'tpc_name':tpc_name, 
-             'tpc_feature':tpc_feature,
-             'raw_leng': raw_leng, 
-             'batch_size':20, 
-             'epoch':20,
-             'verbose':0,
-             'model_save_pth':'model2'}
+
     #test_hpara
     # Place Hoder 
     PLD = tf.placeholder
@@ -89,7 +73,7 @@ if __name__ =='__main__':
     p_truY       = PLD(tf.float32, [None, hpara['predict_window']])    
 
     # Build graph
-    out = model_hub.model_001(p_X, p_dateTime, p_tpcName, p_tpcFeature, hpara)    
+    out = model_hub.model_002(p_X, p_dateTime, p_tpcName, p_tpcFeature, hpara)    
 
     loss_op = model_hub.log_seq_rmse(p_truY, out, 
                            sequence_lengths = [hpara['predict_window']],
@@ -118,5 +102,4 @@ if __name__ =='__main__':
             K.learning_phase(): 1, }    
 
         train_loop(sess, 1000, hpara, 
-            train_op, loss_op, gen_data, feed_dict, 
-            restro_pth=hpara['model_save_pth'])
+            train_op, loss_op, gen_data, feed_dict)
