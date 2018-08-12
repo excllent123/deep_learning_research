@@ -28,16 +28,15 @@ import warnings
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 from keras.callbacks import Callback
-from deep_learning_research.preprocess_toolkit import util as UT
+import sys
+sys.path.append('../../')
+from utility_preprocess import util as UT
 import keras as ks
 
 
 from random import sample
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
-
-from keras.layers.core import regularizers, initializers, activations, constraints, InputSpec
-
 
 class RocAucEvaluation(Callback):
     def __init__(self, validation_data=(), interval=1):
@@ -64,8 +63,14 @@ def balanced_subsampling(df, target_col):
     return res
 
 
-def fit_predict(df,  feats, cat_feats, num_folds=2, stratified=True, model_para={}):
-    assert cat_feats in feats
+def fit_predict(df,  feats, cat_feats, num_folds=2, 
+    submit_pth = 'temp.csv', 
+    stratified=True, model_para={}):
+
+    for i in cat_feats:
+        if i not in feats:
+            raise Exception('{} must be in feats'.format(i))
+
     for col in  cat_feats:
         try:
             df[col] = df[col].apply(lambda x: x/(1.+abs(x)) if x < 150000 else 1)
@@ -108,7 +113,10 @@ def fit_predict(df,  feats, cat_feats, num_folds=2, stratified=True, model_para=
         with tf.Session(graph=tf.Graph()) as sess:
             ks.backend.set_session(sess)
 
-            model = hub_model.Factoriza_model(train_x, l1_neural, l2_neural, l3_neural)
+            model = hub_model.Factoriza_model(train_x, 
+                                              model_para['l1_neural'], 
+                                              model_para['l2_neural'],
+                                              model_para['l3_neural'])
             
             RocAuc = RocAucEvaluation(validation_data=(valid_x, valid_y), interval=1)
             
@@ -136,7 +144,6 @@ def fit_predict(df,  feats, cat_feats, num_folds=2, stratified=True, model_para=
 
     res_tr_roc = np.array(res_tr_roc).mean()
     res_vd_roc = np.array(res_vd_roc).mean()
-    submit_pth = 'simple_dl_10_small.csv'
 
 
     test_df['TARGET'] = sub_preds / train_times
@@ -160,10 +167,10 @@ def get_bureau_count(tar_dir):
     bureau = bureau.groupby('SK_ID_CURR').sum().reset_index()
     return bureau
 
-def set_logger():
+def set_logger(file_pth):
     logger = logging.getLogger('simple_example')
     logger.setLevel(logging.DEBUG)
-    fh = logging.FileHandler('res.log')
+    fh = logging.FileHandler(file_pth)
     fh.setLevel(logging.DEBUG)    
 
     # create formatter and add it to the handlers
@@ -177,7 +184,7 @@ def set_logger():
 if __name__ == '__main__':
 
     tar_dir = '../../.kaggle/competitions/home-credit-default-risk/'    
-    logger = set_logger()
+    logger = set_logger('hub_submit/result.log')
 
     preprocess_mode = 5
     if preprocess_mode ==2 :
@@ -206,12 +213,12 @@ if __name__ == '__main__':
         print(len(df), 'BEFORE')
         df = pd.merge(df, bureau, on='SK_ID_CURR', how='left')
         
-        df.to_feather('data_preprocess_4')
-        print('saved data_preprocess_4.csv')    
+        df.to_feather('data_preprocess_4.feather')
+        print('saved data_preprocess_4')    
  
     else:
         print('Read data_preprocess_4 ')
-        df = pd.read_feather('data_preprocess_4')
+        df = pd.read_feather('data_preprocess_4.feather')
 
     feats = [f for f in df.columns if f not in ['TARGET','SK_ID_CURR',
     'SK_ID_BUREAU','SK_ID_PREV', 'index', 'index_x', 'index_y', 'Unnamed: 0']]
@@ -239,10 +246,20 @@ if __name__ == '__main__':
                  'REFUSED_APP_CREDIT_PERC_MAX','REFUSED_APP_CREDIT_PERC_MEAN',
                  'INSTAL_PAYMENT_PERC_MAX','INSTAL_PAYMENT_PERC_MEAN','INSTAL_PAYMENT_PERC_SUM']
 
-    submit_pth, res_tr_roc, res_vd_roc = fit_predict(df_fill, 
-                                                     feats=feats,
-                                                     cat_feats = cat_feats,  
-                                                     stratified=True)
+    model_para = {'l1_neural': 166,
+                  'l2_neural': 66,'l3_neural': 60,}
 
-    logger.debug('File : {} , Train_loss : {}, Valid_loss : {}, Metrics : {}'.format(
-             submit_pth, res_tr_roc, res_vd_roc, 'roc_auc_score'))
+    (submit_pth, 
+     res_tr_roc, 
+     res_vd_roc) = fit_predict(df_fill, 
+                               feats=feats,
+                               cat_feats = cat_feats, 
+                               submit_pth = 'hub_submit/simple_dl_11.csv',
+                               stratified=True, 
+                               model_para=model_para)
+
+    logger.debug('File : {} , Train_loss : {}, Valid_loss : {}, Metrics : {}, Model_para : {}'.format(
+             submit_pth, 
+             round(res_tr_roc,5), 
+             round(res_vd_roc,5), 
+             'roc_auc_score', str(model_para)))

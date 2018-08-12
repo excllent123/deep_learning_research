@@ -9,12 +9,12 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 from keras.callbacks import Callback
-from deep_learning_research.preprocess_toolkit import util as UT
 import keras as ks
 from keras.backend.tensorflow_backend import clip
 from keras.layers.core import Lambda
 from keras.engine.topology import Layer
-from random import sample
+
+from keras.layers.core import regularizers, initializers, activations, constraints, InputSpec
 
 
 class FactorizationMachinesLayer(Layer):

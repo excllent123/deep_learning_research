@@ -46,3 +46,12 @@ def import_data(file):
     df = pd.read_csv(file, parse_dates=True, keep_date_col=True)
     df = reduce_mem_usage(df)
     return df
+
+
+def probe_null(df)-> pd.DataFrame:
+    total = df.isnull().sum().sort_values(ascending=False)
+    percent = (df.isnull().sum()/df.isnull().count()).sort_values(ascending=False)
+    missing_data = pd.concat([total, percent], axis=1, keys=['Total', 'Percent'])
+    return missing_data
+
+
