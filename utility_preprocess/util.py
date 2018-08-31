@@ -54,4 +54,42 @@ def probe_null(df)-> pd.DataFrame:
     missing_data = pd.concat([total, percent], axis=1, keys=['Total', 'Percent'])
     return missing_data
 
+def probe_column_content(df, col):
+    try:
+        display(df[col].value_counts())
+    except:
+        print(df[col].value_counts())
 
+def auto_fillna(df, except_col=[]):
+    for col in df.columns:
+        if col in except_col:
+            continue
+        if df[col].dtype=='object':
+            df[col] = df[col].fillna('Unknown')
+        else:
+            df[col] = df[col].fillna(0)
+    return df 
+
+def probe_cardinality(df):
+    res = pd.DataFrame()
+    for col in df.columns:
+        temp = {'Col_Name' : col, 
+                'Cardinality': len(set(df[col])),
+                'Cardinality_Percent' : round(len(set(df[col])) / float(len(df)), 4)*100,
+                'Null_Percent' : round( len(set(df[col].isnull())) / float(len(df)), 4)*100
+                }
+        res = res.append(temp, ignore_index=True)
+    return res
+
+def probe_null(df):
+    for col in df.columns:
+        if len(set(df[col].isnull()))>1:
+            print(col)
+            
+def show_lgbm_feature_imp(x_cols, lgbm):
+    fold_importance_df = pd.DataFrame()
+    fold_importance_df["feature"] = x_cols
+    fold_importance_df["importance"] = lgbm.feature_importance()
+    fold_importance_df = fold_importance_df.sort_values('importance', ascending=False)
+    display(fold_importance_df)
+    return fold_importance_df

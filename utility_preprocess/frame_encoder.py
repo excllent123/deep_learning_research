@@ -52,7 +52,7 @@ class PandasOneHotEncoder(PandasBaseAgent):
         self.cols = [i for i in self.cols if i not in self.except_cols]
         self.le = {}
         for col in self.cols:
-            self.le[col] = OneHotEncoder()
+            self.le[col] = OneHotEncoder(sparse=False)
             self.le[col].fit(df[col].values.reshape(-1, 1))
 
 class PandasMinMaxScaler(PandasBaseAgent):
