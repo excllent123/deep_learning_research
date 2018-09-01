@@ -93,3 +93,18 @@ def show_lgbm_feature_imp(x_cols, lgbm):
     fold_importance_df = fold_importance_df.sort_values('importance', ascending=False)
     display(fold_importance_df)
     return fold_importance_df
+
+
+def ensemble_avg_pre(models, X):
+    res = []
+    for m in models:
+        pre_y = m.predict(X)
+        res.append(pre_y)
+    return np.array(res).mean(0)
+
+def ensemble_newX(models, X):
+    res = []
+    for m in models:
+        pre_y = m.predict(X)
+        res.append(pre_y)
+    return np.array(res)
