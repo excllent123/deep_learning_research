@@ -75,7 +75,7 @@ def probe_cardinality(df, id_col=None):
     res = pd.DataFrame()
 
     if id_col:
-        all_length = float(len(set(df[col])))
+        all_length = float(len(set(df[id_col])))
     else:
         all_length =  float(len(df))
 
