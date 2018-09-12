@@ -70,21 +70,23 @@ def auto_fillna(df, except_col=[]):
             df[col] = df[col].fillna(0)
     return df 
 
-def probe_cardinality(df):
+def probe_cardinality(df, id_col=None):
     res = pd.DataFrame()
-    for col in df.columns:
-        temp = {'Col_Name' : col, 
-                'Cardinality': len(set(df[col])),
-                'Cardinality_Percent' : round(len(set(df[col])) / float(len(df)), 4)*100,
-                'Null_Percent' : round( len(set(df[col].isnull())) / float(len(df)), 4)*100
-                }
-        res = res.append(temp, ignore_index=True)
-    return res
 
-def probe_null(df):
+    if id_col:
+        all_length = float(len(set(df[col])))
+    else:
+        all_length =  float(len(df))
+
     for col in df.columns:
-        if len(set(df[col].isnull()))>1:
-            print(col)
+        row = {
+            'features': col,
+            'cardinality' : len(set(df[col])),
+            'null_percent' :   round(len(df[df[col].isnull()]) / all_length,4)*100,
+            'cardinality_percent' : round(len(set(df[col])) / all_length, 4)*100,
+        }
+        res = res.append(row, ignore_index=True)
+    return res
             
 def show_lgbm_feature_imp(x_cols, lgbm):
     fold_importance_df = pd.DataFrame()
