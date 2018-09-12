@@ -113,18 +113,27 @@ def ensemble_newX(models, X):
     return np.array(res)
 
 
-def interactive_encoder(df, agg_cols, end_cols):
+def interactive_encoder(train_df, test_df,  agg_cols, end_cols):
     '''
-    A data preprocess method that may be applied before train-valide split 
+    A data preprocess method that may be applied before train_df-valide split 
     if tar_cols did not contain tar_col, but should always take care of information-leakage
     '''
+    res_encoder = {} # col
     for col in end_cols:
-        df[col] = df[col].apply(float)
+        train_df[col] = train_df[col].apply(float)
     for col in tqdm(agg_cols):
         for end_col in end_cols:
-            gp = df.groupby(col)[end_col]
+            gp = train_df.groupby(col)[end_col]
             mean = gp.mean()
             std  = gp.std()
-            df[col + '_{}_avg'.format(end_col)] = df[col].map(mean)
-            df[col + '_{}_std'.format(end_col)] = df[col].map(std)
-    return df 
+            try: 
+                # check test_df could mapping first 
+                test_df[col + '_{}_avg'.format(end_col)] = test_df[col].map(mean)
+                test_df[col + '_{}_std'.format(end_col)] = test_df[col].map(std)
+
+                train_df[col + '_{}_avg'.format(end_col)] = train_df[col].map(mean)
+                train_df[col + '_{}_std'.format(end_col)] = train_df[col].map(std)
+            except Exception as e :
+                print('No value for test_df map, imbalanced encoder', col)
+                pass
+    return train_df, test_df 
