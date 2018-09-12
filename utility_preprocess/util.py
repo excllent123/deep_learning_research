@@ -143,12 +143,13 @@ def interactive_encoder(train_df, valid_df, test_df,  agg_cols, end_cols):
 
 def preprocess_policy_gp(df, id_col='Policy_Number', tar_col='Next_Premium', agg_para=['mean', 'std']):
 
-    temp = df[tar_col].copy()
+    temp = df[[id_col, tar_col]].copy()
     del df[tar_col]
     df = df.groupby(id_col).agg(agg_para)
     df.columns = [''.join(i) for i in df.columns.values ] 
+    df[id_col] = df.index
     df = auto_fillna(df)
-    df[tar_col] = temp    
+    df = pd.merge(df, temp, on=id_col, how='inner')
     return df
 
 
