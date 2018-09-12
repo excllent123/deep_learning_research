@@ -110,3 +110,20 @@ def ensemble_newX(models, X):
         pre_y = m.predict(X)
         res.append(pre_y)
     return np.array(res)
+
+
+def interactive_encoder(df, agg_cols, end_cols):
+    '''
+    A data preprocess method that may be applied before train-valide split 
+    if tar_cols did not contain tar_col, but should always take care of information-leakage
+    '''
+    for col in end_cols:
+        df[col] = df[col].apply(float)
+    for col in tqdm(agg_cols):
+        for end_col in end_cols:
+            gp = df.groupby(col)[end_col]
+            mean = gp.mean()
+            std  = gp.std()
+            df[col + '_{}_avg'.format(end_col)] = df[col].map(mean)
+            df[col + '_{}_std'.format(end_col)] = df[col].map(std)
+    return df 
