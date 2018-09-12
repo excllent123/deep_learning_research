@@ -150,6 +150,7 @@ def preprocess_policy_gp(df, id_col='Policy_Number', tar_col='Next_Premium', agg
     df[id_col] = df.index
     df = auto_fillna(df)
     df = pd.merge(df, temp, on=id_col, how='inner')
+    df.index = range(len(df))
     return df
 
 
@@ -230,5 +231,33 @@ def gen_kfold(train_df, test_df, agg_cols, end_cols,  n_fold=6,
         yield trainX_df, trainY, validX_df, validY, test_df, x_cols # need id -col
 
 
-
+def gen_kfold_002(train_df, test_df, agg_cols=agg_cols, end_cols=end_cols,  n_fold=6, 
+              tar_col='Next_Premium', id_col='Policy_Number'):
+    '''
+    test_df need have tar_col and id_col 
+    '''
+    fold = KFold(n_fold, shuffle=True)
+    
+    
+    
+    # kfold -- dataframe
+    for epch, ind in enumerate(fold.split(train_df)):
+        train_ind, valid_ind  = ind
+        
+        fold_train_df = train_df.iloc[train_ind]
+        fold_valid_df = train_df.iloc[valid_ind]
+        
+        # ==========================
+        fold_train_df, fold_valid_df, test_df = interactive_encoder(fold_train_df, 
+                                                                    fold_valid_df, 
+                                                                    test_df, 
+                                                                    agg_cols, 
+                                                                    end_cols)
+        
+        fold_train_df = preprocess_policy_gp(fold_train_df, id_col, tar_col)
+        fold_valid_df = preprocess_policy_gp(fold_valid_df, id_col, tar_col)
+        test_df_atf       = preprocess_policy_gp(test_df, id_col, tar_col)
+        # ==========================
+        
+        yield fold_train_df,fold_valid_df, test_df_atf 
 
