@@ -150,3 +150,84 @@ def preprocess_policy_gp(df, id_col='Policy_Number', tar_col='Next_Premium', agg
     df = auto_fillna(df)
     df[tar_col] = temp    
     return df
+
+
+
+# temp = probe_cardinality(policy_df, 'Policy_Number')# 
+
+# temp = temp[temp['cardinality'] > 1]
+# agg_cols = list(temp[temp['cardinality'] < 2000]['features'])
+# agg_cols = [i for i in agg_cols if i not in end_cols]
+# temp
+
+# end_cols=['Replacement_cost_of_insured_vehicle', 'Insured_Amount3', 'Premium', 'Next_Premium' ]# 
+
+# train_df = pd.merge(train_df, policy_df, on='Policy_Number', how='left')# 
+
+# test_df = pd.merge(test_df, policy_df, on='Policy_Number', how='left')# 
+
+# tar_col='Next_Premium'# 
+
+# id_col='Policy_Number'# 
+
+# param_01={
+#     'boosting_type': 'gbdt',
+#     'class_weight': None,
+#     'colsample_bytree': 0.733333,
+#     'learning_rate': 0.008,
+#     'max_depth': 6,    
+#     'min_child_weight': 0.0005,
+#     'min_split_gain': 0.0,
+#     'n_estimators': 8000,
+#     'n_jobs': 2,
+#     'num_leaves': 72,
+#     'objective': None,
+#     'random_state': 42,
+#     'reg_alpha': 0.877551,
+#     'reg_lambda': 0.204082,
+#     'silent': True,
+#     'subsample': 0.989495,
+#     'subsample_for_bin': 240000,
+#     'subsample_freq': 1,
+#     'metric': 'l1' # aliase for mae 
+#     }    
+
+def gen_kfold(train_df, test_df, agg_cols, end_cols,  n_fold=6, 
+              tar_col='Next_Premium', id_col='Policy_Number'):
+    '''
+    test_df need have tar_col and id_col 
+    '''
+    fold = KFold(n_fold, shuffle=True)
+    
+    # kfold -- dataframe
+    for epch, ind in enumerate(fold.split(train_df)):
+        train_ind, valid_ind  = ind
+        
+        fold_train_df = train_df.iloc[train_ind]
+        fold_valid_df = train_df.iloc[valid_ind]
+        
+        # ==========================
+        fold_train_df, fold_valid_df, test_df = interactive_encoder(fold_train_df, 
+                                                                    fold_valid_df, 
+                                                                    test_df, 
+                                                                    agg_cols, 
+                                                                    end_cols)
+        
+        fold_train_df = preprocess_policy_gp(fold_train_df, id_col, tar_col)
+        fold_valid_df = preprocess_policy_gp(fold_valid_df, id_col, tar_col)
+        test_df       = preprocess_policy_gp(test_df, id_col, tar_col)
+        # ==========================
+        
+        trainY = fold_train_df[tar_col].values.flatten()
+        validY = fold_valid_df[tar_col].values.flatten()
+        
+        x_cols = [i for i in fold_train_df.columns if (i != tar_col and i!= id_col)]
+        
+        trainX = fold_train_df[x_cols].values
+        validX = fold_valid_df[tar_col].values
+        
+        yield trainX_df, trainY, validX_df, validY, test_df, x_cols # need id -col
+
+
+
+
