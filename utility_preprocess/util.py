@@ -113,7 +113,7 @@ def ensemble_newX(models, X):
     return np.array(res)
 
 
-def interactive_encoder(train_df, test_df,  agg_cols, end_cols):
+def interactive_encoder(train_df, valid_df, test_df,  agg_cols, end_cols):
     '''
     A data preprocess method that may be applied before train_df-valide split 
     if tar_cols did not contain tar_col, but should always take care of information-leakage
@@ -127,13 +127,26 @@ def interactive_encoder(train_df, test_df,  agg_cols, end_cols):
             mean = gp.mean()
             std  = gp.std()
             try: 
-                # check test_df could mapping first 
+                # check valid_df could mapping first 
+                valid_df[col + '_{}_avg'.format(end_col)] = valid_df[col].map(mean)
+                valid_df[col + '_{}_std'.format(end_col)] = valid_df[col].map(std)
+
                 test_df[col + '_{}_avg'.format(end_col)] = test_df[col].map(mean)
                 test_df[col + '_{}_std'.format(end_col)] = test_df[col].map(std)
 
                 train_df[col + '_{}_avg'.format(end_col)] = train_df[col].map(mean)
                 train_df[col + '_{}_std'.format(end_col)] = train_df[col].map(std)
             except Exception as e :
-                print('No value for test_df map, imbalanced encoder', col)
+                print('No value for valid_df/test_df map, imbalanced encoder', col)
                 pass
-    return train_df, test_df 
+    return train_df, valid_df, test_df
+
+def preprocess_policy_gp(df, id_col='Policy_Number', tar_col='Next_Premium', agg_para=['mean', 'std']):
+
+    temp = df[tar_col].copy()
+    del df[tar_col]
+    df = df.groupby(id_col).agg(agg_para)
+    df.columns = [''.join(i) for i in df.columns.values ] 
+    df = auto_fillna(df)
+    df[tar_col] = temp    
+    return df
