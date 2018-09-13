@@ -231,7 +231,7 @@ def gen_kfold(train_df, test_df, agg_cols, end_cols,  n_fold=6,
         yield trainX_df, trainY, validX_df, validY, test_df, x_cols # need id -col
 
 
-def gen_kfold_002(train_df, test_df, agg_cols=agg_cols, end_cols=end_cols,  n_fold=6, 
+def gen_kfold_002(train_df, test_df, agg_cols, end_cols,  n_fold=6, 
               tar_col='Next_Premium', id_col='Policy_Number'):
     '''
     test_df need have tar_col and id_col 
@@ -248,7 +248,7 @@ def gen_kfold_002(train_df, test_df, agg_cols=agg_cols, end_cols=end_cols,  n_fo
         fold_valid_df = train_df.iloc[valid_ind]
         
         # ==========================
-        fold_train_df, fold_valid_df, test_df = interactive_encoder(fold_train_df, 
+        fold_train_df, fold_valid_df, test_df_atf = interactive_encoder(fold_train_df, 
                                                                     fold_valid_df, 
                                                                     test_df, 
                                                                     agg_cols, 
@@ -256,7 +256,7 @@ def gen_kfold_002(train_df, test_df, agg_cols=agg_cols, end_cols=end_cols,  n_fo
         
         fold_train_df = preprocess_policy_gp(fold_train_df, id_col, tar_col)
         fold_valid_df = preprocess_policy_gp(fold_valid_df, id_col, tar_col)
-        test_df_atf       = preprocess_policy_gp(test_df, id_col, tar_col)
+        test_df_atf       = preprocess_policy_gp(test_df_atf, id_col, tar_col)
         # ==========================
         
         yield fold_train_df,fold_valid_df, test_df_atf 
