@@ -1,4 +1,5 @@
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, MinMaxScaler, StandardScaler
+from tqdm import tqdm 
 
 class PandasBaseAgent():
     def __init__(self, except_cols=[]):
@@ -37,7 +38,7 @@ class PandasLabelEncoder(PandasBaseAgent):
         self.cols =  [i for i in df.columns if df.dtypes[i]=='object' ]
         self.cols = [i for i in self.cols if i not in self.except_cols]
         self.le = {}
-        for col in self.cols:
+        for col in tqdm(self.cols):
             self.le[col] = LabelEncoder()
             self.le[col].fit(df[col].values.reshape(-1, 1))
 
@@ -51,7 +52,7 @@ class PandasOneHotEncoder(PandasBaseAgent):
         self.cols =  [i for i in df.columns if df.dtypes[i] in ['int8', 'int32', 'int64'] ]
         self.cols = [i for i in self.cols if i not in self.except_cols]
         self.le = {}
-        for col in self.cols:
+        for col in tqdm(self.cols):
             self.le[col] = OneHotEncoder(sparse=False)
             self.le[col].fit(df[col].values.reshape(-1, 1))
 
@@ -64,7 +65,7 @@ class PandasMinMaxScaler(PandasBaseAgent):
                             'int32', 'int64', 'float64', 'float32'] ]
         self.cols = [i for i in self.cols if i not in self.except_cols]
         self.le = {}
-        for col in self.cols:
+        for col in tqdm(self.cols):
             self.le[col] = MinMaxScaler()
             self.le[col].fit(df[col].values.reshape(-1, 1))
 
@@ -78,6 +79,6 @@ class PandasStandardScaler(PandasBaseAgent):
                             'int32', 'int64', 'float64', 'float32'] ]
         self.cols = [i for i in self.cols if i not in self.except_cols]
         self.le = {}
-        for col in self.cols:
+        for col in tqdm(self.cols):
             self.le[col] = StandardScaler()
             self.le[col].fit(df[col].values.reshape(-1, 1))
