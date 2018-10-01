@@ -48,7 +48,40 @@ class RSNA_Dataset(Dataset):
     def __len__(self):
         return len(self.hook_df)
 
+def image_augment(def_img, ref_img):
+    raw_h, raw_w = def_img.shape[0], def_img.shape[1]
+    # orient-augmentation 
+    rand = np.random.randint(0,10)
+    if rand > 4:
+        def_img = rotate(def_img, 90)
+        ref_img = rotate(ref_img, 90)
 
+    # small angle-jitter
+    rand = np.random.randint(0,10)
+    if rand < 5:
+        def_img = rotate(def_img, rand)
+        ref_img = rotate(ref_img, rand)
+
+    rand = np.random.randint(0,10)
+    if rand > 4:
+        def_img = def_img[ :, ::-1, :  ]
+        ref_img = ref_img[ :, ::-1, :  ]
+
+    rand = np.random.randint(0,10)
+    if rand > 4:
+        def_img = def_img[ ::-1, : , : ]
+        ref_img = ref_img[ ::-1, : , : ]
+
+    rand = np.random.randint(0, 60)
+    if rand < 40:
+        def_img = def_img[rand :raw_h-rand, rand : raw_w-rand,:]
+        ref_img = ref_img[rand :raw_h-rand, rand : raw_w-rand,:]
+
+        def_img = resize(def_img,(raw_h,raw_w) )
+        ref_img = resize(ref_img,(raw_h,raw_w) )
+    return def_img, ref_img
+
+    
 def img_augment(img):
     '''
     2d
