@@ -11,6 +11,7 @@ from skimage.io import imread, imshow
 from sklearn.model_selection import KFold, StratifiedKFold
 from datetime import datetime
 import sys 
+from tqdm import tqdm
 
 
 class DefRefDataset_DF(Dataset):
@@ -97,6 +98,15 @@ def get_train_df(dir_pth  = 'd:/_08_test_data/TSMC__kaggle_2018/training_labeled
     res_df["def_files"] = def_files
     return res_df
 
+def hook_df_balance_target(df, tar_col):
+    count_df = df[tar_col].value_counts()
+    count_mean = count_df.mean()
+    for value in  list(set(df[tar_col])):
+        temp_df = df[df[tar_col]==value]
+        while len(df[df[tar_col]==value]) < count_mean:
+            df = df.append(temp_df, ignore_index=True)
+    return df
+
 def gen_oof_dataset(hook_table, target_col,  n_fold, trans_ops, 
     starfied=True, img_width=400, img_height=400):
     '''
@@ -125,8 +135,9 @@ def gen_oof_dataset(hook_table, target_col,  n_fold, trans_ops,
             img_height=img_height)
         yield train_dataset, vaild_dataset, hook_table
 
-def train_single_fold(train_dataset, vaild_dataset, model, criterion, optimizer, 
-    model_export_dir, 
+def train_single_fold(train_dataset, 
+    vaild_dataset, model, criterion, optimizer, 
+    model_export_dir, batch_size=16,
     test_mode=False):
     '''
     model export dir 
@@ -145,9 +156,9 @@ def train_single_fold(train_dataset, vaild_dataset, model, criterion, optimizer,
     model.cuda()    
 
     epoch = 1
-    epoch_max_tolerance = 2
+    epoch_max_tolerance = 5
     epoch_tolerance = 0
-    res_f_loss = 999
+    res_f_score = 0
     while epoch_tolerance < epoch_max_tolerance:
         update_time = str(datetime.today()).split('.')[0].replace(':', '-')
         record_df = pd.DataFrame()
@@ -159,16 +170,28 @@ def train_single_fold(train_dataset, vaild_dataset, model, criterion, optimizer,
             if train_mode =='train':
                 model.train()    
 
-                for diff_img, label, def_path in DataLoader(train_dataset, batch_size=32):
+                iter_item = tqdm(DataLoader(train_dataset, 
+                                batch_size=batch_size, num_workers=32 ), ascii=True)
+
+                for diff_img, label, def_path in iter_item:
                     optimizer.zero_grad()
                     outputs =model(diff_img.type(Tensor))    
-                    loss = criterion(outputs, label.type(Tensor))
+
+                    if test_mode:
+                        print("=====================")
+                        print(outputs, label)
+
+                    # Input: (N,C) where C = number of classes
+                    # Target: (N) where each value is 0 <= targets[i] <= C-1
+                    loss = criterion (outputs.type(Tensor), label.type(Tensor))
                     running_loss += loss.item()
 
                     # backward + optimize  
                     loss.backward()
                     optimizer.step()
                     if test_mode: break
+
+                    iter_item.set_description('Loss %.4f' %(loss.item()))
                 
                 print('epoch : %d, loss: %.3f' %(epoch,
                                                  running_loss / len(train_dataset)))
@@ -176,28 +199,33 @@ def train_single_fold(train_dataset, vaild_dataset, model, criterion, optimizer,
             else :
                 model.eval()
                 running_loss = 0.0
-                all_f_loss = 0.0    
+                all_f_score = 0.0    
+
+                iter_item = tqdm(DataLoader(vaild_dataset, 
+                    batch_size=batch_size, num_workers=32 ), ascii=True)
                 with torch.no_grad():
-                    for diff_img, label, def_path in DataLoader(vaild_dataset, batch_size=32):
+                    for diff_img, label, def_path in iter_item:
                         optimizer.zero_grad()
-                        outputs =model(diff_img.type(Tensor))      
-                        loss = criterion(outputs, label.type(Tensor))
+                        outputs =model(diff_img.type(Tensor))     
+
+                        loss = criterion(outputs.type(Tensor), label.type(Tensor))
 
                         running_loss += loss.item()
 
-                        f_loss = fbeta_score(outputs.cpu(), label.cpu() )        
-                        all_f_loss   += f_loss
+                        f_score = fbeta_score(outputs.cpu(), label.cpu() )        
+                        all_f_score   += f_score
                         if test_mode: break
+                        iter_item.set_description('valid-loss {}'.format(loss.item()))
 
-                val_f_loss = round(all_f_loss.numpy()/len(vaild_dataset), 4)
+                val_f_score = round(all_f_score.numpy()/len(vaild_dataset), 4)
 
                 print('epoch {}, valid-loss : {},  valid_f1 : {}'.format( 
                        epoch, 
                        running_loss / len(vaild_dataset),
-                       val_f_loss))    
+                       val_f_score))    
 
         
-                file_name = str(val_f_loss) + "_" + str(epoch) + '_checkpoint.pth'
+                file_name = str(val_f_score) + "_" + str(epoch) + '_checkpoint.pth'
                 is_best = None
                 save_checkpoint({
                           'epoch': epoch,
@@ -210,17 +238,17 @@ def train_single_fold(train_dataset, vaild_dataset, model, criterion, optimizer,
 
                     'epoch':epoch,
                     'model_pth': '{}/'.format(model_export_dir)+ file_name,
-                    'f_loss': val_f_loss,
+                    'f_score': val_f_score,
                     'update_time' : update_time,
                     }, ignore_index=True)        
 
                 record_df.to_csv('record_df.csv', mode='a', index=False, header=False)
                 print('save record ')
-                if val_f_loss >= res_f_loss :
+                if val_f_score < res_f_score :
                     epoch_tolerance+=1 
                 else: 
                     epoch_tolerance = 0 
-                res_f_loss = min(res_f_loss, val_f_loss)
+                res_f_score = max(res_f_score, val_f_score)
                 epoch+=1
 
 def fbeta_score(y_true, y_pred, beta=1, threshold=0.5, eps=1e-9):
@@ -364,7 +392,7 @@ def extract_diff(def_img, ref_img):
     diff = def_img - ref_img
     diff = np.vectorize(lambda x : abs(x))(diff)
     thresh = np.median(diff)
-    diff = np.vectorize(lambda x : 0. if x < thresh *2 else x)(diff)
+    diff = np.vectorize(lambda x : 0. if x < thresh else x)(diff)
     return diff
 
 def difference_proprose(def_img, ref_img):
