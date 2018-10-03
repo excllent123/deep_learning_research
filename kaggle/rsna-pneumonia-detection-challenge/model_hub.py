@@ -90,7 +90,7 @@ class Bottleneck(nn.Module):
 
 class ResNet(nn.Module):
 
-    def __init__(self, block, layers, num_classes=1000, in_channels= 3, base_ly_number=32, ):
+    def __init__(self, block, layers, num_classes=1000, in_channels= 3, base_ly_number=8, fc_factor=32):
         self.inplanes = 64
         super(ResNet, self).__init__()
         self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=7, stride=2, padding=3,
@@ -103,7 +103,7 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, base_ly_number*4, layers[2], stride=2)
         self.layer4 = self._make_layer(block, base_ly_number*8, layers[3], stride=2)
         self.avgpool = nn.AvgPool2d(7, stride=1)
-        self.fc = nn.Linear(base_ly_number*8*676 * block.expansion, num_classes)
+        self.fc = nn.Linear(base_ly_number*fc_factor * block.expansion, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -159,7 +159,16 @@ def resnet18(pretrained=False, **kwargs):
         model.load_state_dict(model_zoo.load_url(model_urls['resnet18']))
     return model
 
+def resnet14(pretrained=False, **kwargs):
+    """Constructs a ResNet-18 model.
 
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+    """
+    model = ResNet(BasicBlock, [1, 1, 1, 1], **kwargs)
+    if pretrained:
+        pass
+    return model
 
 def resnet34(pretrained=False, **kwargs):
     """Constructs a ResNet-34 model.
