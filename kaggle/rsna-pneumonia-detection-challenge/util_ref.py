@@ -68,8 +68,7 @@ class DefRefDataset_DF(Dataset):
         ref_img = resize(ref_img,(self.img_width, self.img_height))
         dff_img = extract_diff(def_img, ref_img)  
         
-        def_img = self._img_nor(def_img)
-        ref_img = self._img_nor(ref_img)
+
 
         #dff_img[:, :, 0] = np.min(dff_img[:, :, 0] + dff_img[:, :, 1], 1)
         dff_img[:, :, 1] = ref_img[:, :, 2]

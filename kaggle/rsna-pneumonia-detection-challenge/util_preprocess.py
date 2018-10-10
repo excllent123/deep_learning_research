@@ -26,7 +26,7 @@ class RSNA_Dataset(Dataset):
 
     def __getitem__(self, idx): 
         row = self.hook_df.iloc[idx]
-        img = np.load(row['pth']+'.npy')
+        img = pydicom.dcmread(row['pth']).pixel_array
         img = img.astype('float32')
         x             = row['x']
         y             = row['y']
@@ -36,12 +36,16 @@ class RSNA_Dataset(Dataset):
         PatientAge    = row['PatientAge']
         ViewPosition  = row['ViewPosition']
         Target        = row['Target'].astype('float32')
+
+        img /=255.
+        img -=0.5
         if self.img_augment:
             img = self.img_augment(img)    
         if self.img_augment_box:
             img, x, y, width, height = self.img_augment_box(img, x, y, width, height)    
         img = resize(img, (self.trian_img_h, self.train_img_w))
         img = np.reshape(img, (1, self.trian_img_h, self.train_img_w))
+
         return img , x, y, width, height, PatientSex, PatientAge, ViewPosition, Target
 
     def __len__(self):
@@ -103,12 +107,41 @@ def img_augment(img):
         img = img[rand:h-rand, rand:w-rand]
     return img
 
+def get_metadata_per_patient(file_pth, attribute):
+    '''
+    Given a patient ID, return useful meta-data from the corresponding dicom image header.
+    Return: 
+    attribute value
+    '''
+    # get dicom image
+    dcmdata =  pydicom.read_file(file_pth)
+    # extract attribute values
+    attribute_value = getattr(dcmdata, attribute)
+    return attribute_value
+
+
+def get_hook_df():
+    train_label = pd.read_csv('C:/Users/kent/.kaggle/competitions/rsna-pneumonia-detection-challenge/stage_1_train_labels.csv')
+    trian_img_dir = 'C:/Users/kent/.kaggle/competitions/rsna-pneumonia-detection-challenge/stage_1_train_images/'    
+
+    train_label['pth'] = train_label.patientId.apply(lambda x : trian_img_dir+x+'.dcm')     
+
+    attributes = ['PatientSex', 'PatientAge', 'ViewPosition' ]
+    for i in attributes:
+        train_label[i]  = train_label['pth'].apply(lambda x: get_metadata_per_patient(x, i))
+
+    train_label = train_label.fillna(0)
+    return train_label
 
 def gen_torch_dataset(n_fold, train_img_h, train_img_w, img_augment, img_augment_box):
     '''
     could custonmized trian-test by Kfold or ? 
     '''
-    hook_table = pd.read_feather('hook_df2.feather')
+    try:
+        hook_table = pd.read_feather('hook_df2.feather')
+    except:
+        hook_table = get_hook_df()
+        hook_table.to_feather('hook_df2.feather')
 
     fold = KFold(n_fold)
     for train_ind, valid_ind in fold.split(hook_table):
@@ -246,7 +279,7 @@ def train_whether_abnormal(model, gen_dataset, criterion, optimizer, scheduler, 
                 if phase == 'val' and epoch_acc > best_acc:
                     best_acc = epoch_acc
                     best_model_wts = copy.deepcopy(model.state_dict())    
-                    model_save_name = 'fold-{}_epoch-{}_acc-{}.pt'.format(fold_numb, epoch, best_acc)
+                    model_save_name = 'fold-{}_epoch-{}_acc-{}.pkl'.format(fold_numb, epoch, best_acc)
                     # model.save_state_dict(model_save_name)
 
                     save_checkpoint({

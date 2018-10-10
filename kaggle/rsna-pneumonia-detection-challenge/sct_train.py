@@ -9,7 +9,7 @@ from skimage.transform import resize
 from skimage.io import imshow
 from util_preprocess import  gen_torch_dataset, img_augment, train_whether_abnormal
 from se_module import se_resnet18, SEBasicBlock
-from model_hub import resnet18, resnet14
+from model_hub import resnet18, resnet14, resnet50
 from torch.utils.data import DataLoader, Dataset
 import torch
 from torch import nn 
@@ -22,8 +22,8 @@ batch_size = 64
 n_fold = 5
 num_epochs = 25
 test_mode = False
-train_img_h = 512
-train_img_w = 512 
+train_img_h = 256
+train_img_w = 256 
 channel = 1
 
 gen_dataset = gen_torch_dataset(n_fold=4, 
@@ -32,12 +32,12 @@ gen_dataset = gen_torch_dataset(n_fold=4,
                                 img_augment=img_augment, 
                                 img_augment_box=None)
 
-model = resnet14( num_classes=1, in_channels=1, fc_factor=800, base_ly_number=4)
+model = resnet18( num_classes=1, in_channels=1, fc_factor=72, base_ly_number=32)
 model = model.cuda()
 
 summary(model, (channel, train_img_h, train_img_w))
 
-criterion = nn.BCEWithLogitsLoss()
+criterion = nn.BCELoss().cuda()
 
 # Observe that all parameters are being optimized
 optimizer_ft = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
@@ -53,6 +53,6 @@ train_whether_abnormal(model,
                        batch_size = batch_size,
                        n_fold     = n_fold, 
                        num_epochs = num_epochs, 
-                       model_export_dir = 'resnet18_c1', 
+                       model_export_dir = 'resnet18_c2', 
                        test_mode=test_mode, 
 )
