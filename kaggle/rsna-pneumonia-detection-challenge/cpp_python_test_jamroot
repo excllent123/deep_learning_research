@@ -1,0 +1,14 @@
+# Jamfile for project libjohnpaul
+
+lib cpp_python_test
+    : # sources
+      cpp_python_test.cc
+    : # requirements 
+     <link>shared
+    : # default-build
+    : # usage-requirements
+      <include>C:/Users/kent/Documents/GitHub/boost_1_67_0
+      <include>C:/Users/kent/Anaconda3/Library/bin
+      <include>C:/Users/kent/Anaconda3/DLLs
+      <include>C:/Users/kent/Anaconda3/include
+    ;
