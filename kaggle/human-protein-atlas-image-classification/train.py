@@ -11,9 +11,10 @@ import pandas as pd
 import util
 from hub_preprocess.dna_dataset import HumanDataset
 from tqdm import tqdm 
-from config import config
+import config as CONF
+
 from datetime import datetime
-from hub_model.model import
+
 from torch import nn,optim
 from collections import OrderedDict
 from torch.autograd import Variable
@@ -23,24 +24,6 @@ from sklearn.model_selection import train_test_split
 from timeit import default_timer as timer
 from sklearn.metrics import f1_score
 
-# 1. set random seed
-random.seed(2050)
-np.random.seed(2050)
-torch.manual_seed(2050)
-torch.cuda.manual_seed_all(2050)
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-torch.backends.cudnn.benchmark = True
-warnings.filterwarnings('ignore')
-
-if not os.path.exists("./logs/"):
-    os.mkdir("./logs/")
-
-log = util.Logger()
-log.open("logs/%s_log_train.txt"%config.model_name,mode="a")
-log.write("\n----------------------------------------------- [START %s] %s\n\n" % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), '-' * 51))
-log.write('                           |------------ Train -------------|----------- Valid -------------|----------Best Results---------|------------|\n')
-log.write('mode     iter     epoch    |         loss   f1_macro        |         loss   f1_macro       |         loss   f1_macro       | time       |\n')
-log.write('-------------------------------------------------------------------------------------------------------------------------------\n')
 
 def train(train_loader,model,criterion,optimizer,epoch,valid_loss,best_results,start):
     losses = util.AverageMeter()
@@ -107,7 +90,7 @@ def evaluate(val_loader,model,criterion,epoch,train_loss,best_results,start):
     return [losses.avg,f1.avg]
 
 # 3. test model on public dataset and save the probability matrix
-def test(test_loader,model,folds):
+def test(test_loader,model,folds, config):
     sample_submission_df = pd.read_csv("C:/Users/kent/.kaggle/competitions/human-protein-atlas-image-classification/sample_submission.csv")
     #3.1 confirm the model converted to cuda
     filenames,labels ,submissions= [],[],[]
@@ -216,10 +199,29 @@ def main(config=config):
         time.sleep(0.01)
 
     best_model = torch.load("%s/%s_fold_%s_model_best_loss.pth.tar"%(
-        config.best_models,config.model_name,str(fold)))
+        config.best_models, config.model_name,str(fold)))
     #best_model = torch.load("checkpoints/bninception_bcelog/0/checkpoint.pth.tar")
     model.load_state_dict(best_model["state_dict"])
-    test(test_loader,model,fold)
+    test(test_loader,model,fold, config)
 
 if __name__ == "__main__":
-    main()
+    # 1. set random seed
+    random.seed(2050)
+    np.random.seed(2050)
+    torch.manual_seed(2050)
+    torch.cuda.manual_seed_all(2050)
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    torch.backends.cudnn.benchmark = True
+    warnings.filterwarnings('ignore')    
+
+    if not os.path.exists("./logs/"):
+        os.mkdir("./logs/")    
+
+    log = util.Logger()
+    log.open("logs/%s_log_train.txt"%config.model_name,mode="a")
+    log.write("\n [START %s] %s\n\n" % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), '-' * 51))
+    log.write('                           |------------ Train -------------|----------- Valid -------------|----------Best Results---------|------------|\n')
+    log.write('mode     iter     epoch    |         loss   f1_macro        |         loss   f1_macro       |         loss   f1_macro       | time       |\n')
+    log.write('-------------------------------------------------------------------------------------------------------------------------------\n')    
+    # main
+    main(CONF.config)
