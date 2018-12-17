@@ -6,7 +6,6 @@ class DefaultConfigs(object):
     best_models = "hub_ckpts/best_models/"
     submit = "hub_submit/"
     model_name = "bninception_bcelog"
-    model = get_net()
     num_classes = 28
     img_weight = 512
     img_height = 512
@@ -14,5 +13,6 @@ class DefaultConfigs(object):
     lr = 0.03
     batch_size = 32
     epochs = 50
+    model = get_net(channels, num_classes)
 
 config = DefaultConfigs()
