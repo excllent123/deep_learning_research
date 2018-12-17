@@ -68,7 +68,7 @@ print(cmd)
 # turns out need build boost-jam 
 # follwoing the tutal but use different compiler bootstrap.bat gcc
 # b2 install --prefix=dir toolset=gcc
-# b2 --with-python toolset=gcc
+# b2 --with-python toolset=gcc cxxflags=-std=gnu++0x 
 
 
 # copy libs/python/example 

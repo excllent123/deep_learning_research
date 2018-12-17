@@ -5,6 +5,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
+import os 
+import numpy as np 
 
 class Net(nn.Module):
     def __init__(self):
@@ -55,6 +57,19 @@ def test(args, model, device, test_loader):
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
 
+def save_weight(model, save_dir):
+    if not os.path.exists(save_dir): os.makedirs(save_dir)
+
+    for name, param in model.state_dict().items():
+        np.save(os.path.join(save_dir, name), param.cpu().numpy())
+
+def load_weight(model, save_dir):
+    for name, param in model.state_dict().items():
+        param.copy_(torch.from_numpy(
+            np.load(os.path.join(save_dir, name+'.npy'))))
+
+
+
 def main():
     # Training settings
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
@@ -102,10 +117,21 @@ def main():
     model = Net().to(device)
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
-    for epoch in range(1, args.epochs + 1):
-        train(args, model, device, train_loader, optimizer, epoch)
+    if save_mode:
+        for epoch in range(1, args.epochs + 1):
+            train(args, model, device, train_loader, optimizer, epoch)
+            test(args, model, device, test_loader)
+
+        save_weight(model, 'test_base_line')
+
+
+    if test_mode:
+        load_weight(model, 'test_base_line')
         test(args, model, device, test_loader)
 
 
+
 if __name__ == '__main__':
+    save_mode = False 
+    test_mode = True
     main()
