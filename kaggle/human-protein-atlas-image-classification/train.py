@@ -116,7 +116,7 @@ def test(test_loader,model,folds, config):
     sample_submission_df.to_csv('./submit/%s_bestloss_submission.csv'%config.model_name, index=None)
 
 # 4. main function
-def main(config=config):
+def main(config):
     fold = 0
     # 4.1 mkdirs
     if not os.path.exists(config.submit):
@@ -218,7 +218,7 @@ if __name__ == "__main__":
         os.mkdir("./logs/")    
 
     log = util.Logger()
-    log.open("logs/%s_log_train.txt"%config.model_name,mode="a")
+    log.open("logs/%s_log_train.txt"%CONF.config.model_name,mode="a")
     log.write("\n [START %s] %s\n\n" % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), '-' * 51))
     log.write('                           |------------ Train -------------|----------- Valid -------------|----------Best Results---------|------------|\n')
     log.write('mode     iter     epoch    |         loss   f1_macro        |         loss   f1_macro       |         loss   f1_macro       | time       |\n')
