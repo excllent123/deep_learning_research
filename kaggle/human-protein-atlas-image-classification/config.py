@@ -1,4 +1,5 @@
 from hub_model.bsl_model import get_net
+
 class DefaultConfigs(object):
     train_data = "C:/Users/kent/.kaggle/competitions/human-protein-atlas-image-classification/train/" # where is your train data
     test_data = "C:/Users/kent/.kaggle/competitions/human-protein-atlas-image-classification/test/"   # your test data
