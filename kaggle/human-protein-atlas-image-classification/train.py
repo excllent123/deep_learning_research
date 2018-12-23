@@ -23,6 +23,7 @@ from torch.optim import lr_scheduler
 from sklearn.model_selection import train_test_split
 from timeit import default_timer as timer
 from sklearn.metrics import f1_score
+from iterstrat.ml_stratifiers import MultilabelStratifiedShuffleSplit
 
 
 def train(train_loader,model,criterion,optimizer,epoch,valid_loss,best_results,start):
@@ -34,6 +35,10 @@ def train(train_loader,model,criterion,optimizer,epoch,valid_loss,best_results,s
         target = torch.from_numpy(np.array(target)).float().cuda(non_blocking=True)
         # compute output
         output = model(images)
+        # for inceptionv3
+        if type(output)==tuple:
+            output=output[0]
+        #output.view(-1), target.float()
         loss = criterion(output,target)
         losses.update(loss.item(),images.size(0))
         
@@ -84,8 +89,6 @@ def evaluate(val_loader,model,criterion,epoch,train_loss,best_results,start):
 
             print(message, end='',flush=True)
         log.write("\n")
-        #log.write(message)
-        #log.write("\n")
         
     return [losses.avg,f1.avg]
 
@@ -113,7 +116,23 @@ def test(test_loader,model,folds, config):
         subrow = ' '.join(list([str(i) for i in np.nonzero(row)[0]]))
         submissions.append(subrow)
     sample_submission_df['Predicted'] = submissions
-    sample_submission_df.to_csv('./submit/%s_bestloss_submission.csv'%config.model_name, index=None)
+    sample_submission_df.to_csv('{}/{}_bestloss_submission.csv'.format(config.submit , config.model_name), index=None)
+
+def oversample_multilabel(df):
+    df['temp'] = [[int(i) for i in s.split()] for s in df['Target']]  
+    multi = [1,1,1,1,1,1,1,1,4,4,4,1,1,1,1,4,
+            1,1,1,1,2,1,1,1,1,1,1,4]
+    res_df = pd.DataFrame()
+    for i in range(len(multi)):
+        mask = df['temp'].apply(lambda x: i in x)
+        temp_df = df[mask]
+        pre = len(res_df)
+        for j in range(multi[i]):
+            res_df = res_df.append(temp_df, ignore_index=True)
+        print('-> Oversample {} from {} samples to {} samples'.format(i, len(temp_df) ,len(res_df)-pre))
+    del res_df['temp']
+    res_df.index = range(len(res_df))
+    return res_df
 
 # 4. main function
 def main(config):
@@ -142,14 +161,27 @@ def main(config):
     best_f1 = 0
     best_results = [np.inf,0]
     val_metrics = [np.inf,0]
-    resume = False
-    all_files = pd.read_csv("C:/Users/kent/.kaggle/competitions/human-protein-atlas-image-classification/train.csv")
-    #print(all_files)
+
+    train_df = pd.read_csv("C:/Users/kent/.kaggle/competitions/human-protein-atlas-image-classification/train.csv")
+    #print(train_df)
+    train_df = oversample_multilabel(train_df)
     test_files = pd.read_csv("C:/Users/kent/.kaggle/competitions/human-protein-atlas-image-classification/sample_submission.csv")
-    train_data_list,val_data_list = train_test_split(all_files,test_size = 0.13,random_state = 2050)
+    
+    # =============================== 
+    # msss = MultilabelStratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
+    # train_df_orig = train_df.copy()
+    # X = train_df_orig['Id'].tolist()
+    # y = train_df_orig['target_vec_float'].tolist()
+    # for train_index, test_index in msss.split(X,y): #it should only do one iteration
+    #     train_data_list = 
+    # ============================
+
+    train_data_list,val_data_list = train_test_split(train_df,test_size = 0.1,
+        random_state = 2050)
 
     # load dataset
     train_gen = HumanDataset(train_data_list,  config,mode="train")
+
     train_loader = DataLoader(train_gen,batch_size=config.batch_size,shuffle=True,
         pin_memory=True,num_workers=4)
 
@@ -168,7 +200,12 @@ def main(config):
         scheduler.step(epoch)
         # train
         lr = util.get_learning_rate(optimizer)
-        train_metrics = train(train_loader,model,criterion,optimizer,epoch,val_metrics,best_results,start)
+        train_metrics = train(train_loader,model,
+            criterion,
+            optimizer,
+            epoch,
+            val_metrics
+            ,best_results,start)
         # val
         val_metrics = evaluate(val_loader,model,criterion,epoch,train_metrics,best_results,start)
         # check results 

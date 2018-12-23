@@ -50,6 +50,12 @@ class HumanDataset(Dataset):
         X = T.Compose([T.ToPILImage(),T.ToTensor()])(X)
         return X.float(),y
 
+    def oversample(self):
+        # 
+        train_labels['Target'] = [[int(i) for i in s.split()] 
+                                       for s in self.train_labels['Target']]  
+        multi = [1,1,1,1,1,1,1,1,4,4,4,1,1,1,1,4,1,1,1,1,2,1,1,1,1,1,1,4]
+
 
     def read_images(self,index):
         row = self.images_df.iloc[index]
