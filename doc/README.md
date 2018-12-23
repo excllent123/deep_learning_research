@@ -20,8 +20,3 @@
 - hub_log
 - hub_config
 
-# SOP
-- build env
-- define problem = get data
-- data preprocess / batach-generator 
-- 
