@@ -90,6 +90,12 @@ class HumanDataset(Dataset):
                 iaa.Affine(shear=(-16, 16)),
                 iaa.Fliplr(0.5),
                 iaa.Flipud(0.5),
+                #iaa.AdditiveGaussianNoise(scale=0.1*255),
+                iaa.GaussianBlur(sigma=(0.0, 3.0)),
+                iaa.Sharpen(alpha=(0.0, 1.0), lightness=(0.75, 2.0)),
+                iaa.Dropout(p=(0, 0.2), per_channel=0.5),
+                iaa.CoarseDropout((0.0, 0.05), size_percent=(0.02, 0.25)),
+                iaa.CropAndPad(percent=(-0.25, 0.25)),
                 
             ])], random_order=True)
         

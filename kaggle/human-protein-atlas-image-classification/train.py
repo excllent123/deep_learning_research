@@ -120,8 +120,8 @@ def test(test_loader,model,folds, config):
 
 def oversample_multilabel(df):
     df['temp'] = [[int(i) for i in s.split()] for s in df['Target']]  
-    multi = [1,1,1,1,1,1,1,1,4,4,4,1,1,1,1,4,
-            1,1,1,1,2,1,1,1,1,1,1,4]
+    multi = [15,15,15,8,9,10,8,9,10,8,9,10,17,20,24,26,15,27,15,20,24,17,8,15,27,27,27]
+    #multi = [1,1,1,1,1,1,1,1,4,4,4,1,1,1,1,4,1,1,1,1,2,1,1,1,1,1,1,4]
     res_df = pd.DataFrame()
     for i in range(len(multi)):
         mask = df['temp'].apply(lambda x: i in x)
@@ -182,7 +182,8 @@ def main(config):
     # load dataset
     train_gen = HumanDataset(train_data_list,  config,mode="train")
 
-    train_loader = DataLoader(train_gen,batch_size=config.batch_size,shuffle=True,
+    train_loader = DataLoader(train_gen,
+        batch_size=config.batch_size,shuffle=True,
         pin_memory=True,num_workers=4)
 
     val_gen = HumanDataset(val_data_list, config,augument=False,mode="train")
