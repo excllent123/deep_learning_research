@@ -1,4 +1,5 @@
 ### Members
-- curtis
 - kent
+- catlin
+- curise
 - chiayuhwang@gmail.com
